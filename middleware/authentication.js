@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
-const app = require('../app');
-const config = app.get('config');
+const config = require('../config');
 
 module.exports = {
 	verifyToken(req, res, next) {

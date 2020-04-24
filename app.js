@@ -1,16 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const config = require('./config');
+const models = require('./models'); //eslint-disable-line
 const app = module.exports = express();
 
-//get the environment
-const environment = process.env.NODE_ENV || 'development';
-
-//get config from the environment
-const config = require(`./config/${environment}`);
-
-//store the config
-app.set('config', config);
+//sync the db models (only when necessary)
+//models.syncAndSeed();
 
 app.listen(config.port, () => {
 	console.log(`listening on port ${config.port}`);

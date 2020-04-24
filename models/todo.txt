@@ -1,1 +1,0 @@
-try to use sequelize for the models
