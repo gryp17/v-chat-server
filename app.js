@@ -1,16 +1,38 @@
-const fs = require('fs');
-const test = require('./middleware/test');
+const express = require('express');
+const bodyParser = require('body-parser');
 
-console.log('it works');
+const app = module.exports = express();
 
-setTimeout(() => {
-	console.log('aaaaaaaaaaaa');
-}, 5000);
+//get the environment
+const environment = process.env.NODE_ENV || 'development';
 
-fs.stat('README.md', (err, data) => {
-	console.log(data);
+//get config from the environment
+const config = require(`./config/${environment}`);
+
+//store the config
+app.set('config', config);
+
+app.listen(config.port, () => {
+	console.log(`listening on port ${config.port}`);
 });
 
-const result = test();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static('./public'));
 
-console.log(result);
+//routes
+app.use('/auth', require('./routes/auth'));
+
+//catch 404 and forward to error handler
+app.use((req, res, next) => {
+	const err = new Error('Not Found');
+	err.status = 404;
+	next(err);
+});
+
+//error handler
+app.use((err, req, res, next) => {
+	res.send({
+		apiError: err.message
+	});
+});

@@ -15,10 +15,6 @@
 	},
 	"author": "Plamen Ivanov",
 	"license": "ISC",
-	"bugs": {
-		"url": "https://github.com/gryp17/v-chat-server/issues"
-	},
-	"homepage": "https://github.com/gryp17/v-chat-server#readme",
 	"devDependencies": {
 		"babel-eslint": "^10.1.0",
 		"eslint": "^6.8.0",
