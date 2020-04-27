@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const config = require('./config');
 const models = require('./models'); //eslint-disable-line
+const { sendApiError } = require('./utils');
 const app = module.exports = express();
 
 //sync the db models (only when necessary)
@@ -27,7 +28,5 @@ app.use((req, res, next) => {
 
 //error handler
 app.use((err, req, res, next) => {
-	res.send({
-		apiError: err.message
-	});
+	sendApiError(res, err.message);
 });

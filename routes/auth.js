@@ -1,10 +1,10 @@
 
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const app = require('../app');
-const verifyToken = require('../middleware/authentication').verifyToken;
+const config = require('../config');
+const { verifyToken } = require('../middleware/authentication');
+const { sendResponse } = require('../utils');
 
-const config = app.get('config');
 const router = express.Router();
 
 router.get('/login', (req, res, next) => {
@@ -19,14 +19,14 @@ router.get('/login', (req, res, next) => {
 		expiresIn: 86400 // expires in 24 hours
 	});
 
-	res.send({
+	sendResponse(res, {
 		success: true,
 		token
 	});
 });
 
 router.get('/test', verifyToken, (req, res, next) => {
-	res.send({
+	sendResponse(res, {
 		success: true
 	});
 });
