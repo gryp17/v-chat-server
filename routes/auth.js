@@ -8,6 +8,12 @@ const { sendResponse, sendError, sendApiError, compareHash } = require('../utils
 
 const router = express.Router();
 
+router.get('/handshake', (req, res, next) => {
+	sendResponse(res, {
+		success: true
+	});
+});
+
 router.get('/login', (req, res, next) => {
 	const dummyData = {
 		username: 'plamen',
@@ -20,15 +26,15 @@ router.get('/login', (req, res, next) => {
 		}
 	}).then((record) => {
 		if (!record) {
-			return sendError({
-				username: 'No such registered user'
+			return sendError(res, {
+				password: 'invalid_login'
 			});
 		}
 
 		compareHash(dummyData.password, record.password).then((valid) => {
 			if (!valid) {
-				return sendError({
-					password: 'Wrong password'
+				return sendError(res, {
+					password: 'invalid_login'
 				});
 			}
 
