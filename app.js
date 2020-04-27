@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const config = require('./config');
 const models = require('./models'); //eslint-disable-line
 const { sendApiError } = require('./utils');
@@ -12,6 +13,10 @@ app.listen(config.port, () => {
 	console.log(`listening on port ${config.port}`);
 });
 
+app.use(cors({
+	credentials: true,
+	origin: true
+}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static('./public'));
