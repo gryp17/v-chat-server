@@ -14,15 +14,13 @@ router.get('/handshake', (req, res, next) => {
 	});
 });
 
-router.get('/login', (req, res, next) => {
-	const dummyData = {
-		username: 'plamen',
-		password: '1234'
-	};
+router.post('/login', (req, res, next) => {
+	const username = req.body.username;
+	const password = req.body.password;
 
 	User.findOne({
 		where: {
-			username: dummyData.username
+			username
 		}
 	}).then((record) => {
 		if (!record) {
@@ -31,19 +29,22 @@ router.get('/login', (req, res, next) => {
 			});
 		}
 
-		compareHash(dummyData.password, record.password).then((valid) => {
+		compareHash(password, record.password).then((valid) => {
 			if (!valid) {
 				return sendError(res, {
 					password: 'invalid_login'
 				});
 			}
 
-			const token = jwt.sign(record.toJSON(), config.auth.secret, {
+			const user = record.toJSON();
+			delete user.password;
+
+			const token = jwt.sign(user, config.auth.secret, {
 				expiresIn: 86400 // expires in 24 hours
 			});
 
 			sendResponse(res, {
-				success: true,
+				user,
 				token
 			});
 		});
@@ -52,9 +53,9 @@ router.get('/login', (req, res, next) => {
 	});
 });
 
-router.get('/test', verifyToken, (req, res, next) => {
+router.get('/session', verifyToken, (req, res, next) => {
 	sendResponse(res, {
-		success: true
+		user: req.user
 	});
 });
 
