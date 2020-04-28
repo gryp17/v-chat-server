@@ -7,9 +7,9 @@ module.exports = {
 	compareHash(value, hash) {
 		return bcrypt.compare(value, hash);
 	},
-	sendError(res, payload) {
+	sendError(res, errors) {
 		res.json({
-			error: payload
+			errors
 		});
 	},
 	sendApiError(res, payload) {

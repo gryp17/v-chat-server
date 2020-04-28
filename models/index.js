@@ -12,7 +12,7 @@ const db = new Sequelize(config.db.database, config.db.user, config.db.password,
 });
 
 const User = db.define('user', {
-	username: {
+	email: {
 		type: Sequelize.STRING
 	},
 	password: {
@@ -47,7 +47,7 @@ const syncAndSeed = () => {
 		return makeHash('1234');
 	}).then((hashedPassword) => {
 		User.create({
-			username: 'plamen',
+			email: 'plamen@abv.bg',
 			password: hashedPassword,
 			displayName: 'Plamen',
 			bio: null,

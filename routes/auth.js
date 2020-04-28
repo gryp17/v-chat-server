@@ -4,9 +4,17 @@ const jwt = require('jsonwebtoken');
 const config = require('../config');
 const { User } = require('../models');
 const { verifyToken } = require('../middleware/authentication');
+const { validate } = require('../middleware/validator');
 const { sendResponse, sendError, sendApiError, compareHash } = require('../utils');
 
 const router = express.Router();
+
+const rules = {
+	login: {
+		email: ['required', 'email'],
+		password: 'required'
+	}
+};
 
 router.get('/handshake', (req, res, next) => {
 	sendResponse(res, {
@@ -14,25 +22,25 @@ router.get('/handshake', (req, res, next) => {
 	});
 });
 
-router.post('/login', (req, res, next) => {
-	const username = req.body.username;
+router.post('/login', validate(rules.login), (req, res, next) => {
+	const email = req.body.email;
 	const password = req.body.password;
 
 	User.findOne({
 		where: {
-			username
+			email
 		}
 	}).then((record) => {
 		if (!record) {
 			return sendError(res, {
-				password: 'invalid_login'
+				password: 'Wrong email or password'
 			});
 		}
 
 		compareHash(password, record.password).then((valid) => {
 			if (!valid) {
 				return sendError(res, {
-					password: 'invalid_login'
+					password: 'Wrong email or password'
 				});
 			}
 

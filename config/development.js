@@ -8,5 +8,13 @@ module.exports = {
 		database: 'v-chat',
 		user: 'root',
 		password: '1234'
+	},
+	uploads: {
+		avatars: {
+			directory: '../public/avatars/',
+			maxSize: 1000000,
+			validExtensions: ['png', 'jpg', 'jpeg'],
+			defaultAvatar: 'default.png'
+		}
 	}
 };
