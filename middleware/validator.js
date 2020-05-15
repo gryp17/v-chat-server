@@ -1,11 +1,9 @@
 const path = require('path');
 const _ = require('lodash');
 const { sendError, compareHash } = require('../utils');
-const config = require('../config');
+const { minPasswordLength, uploads, errorCodes } = require('../config');
 
 const { User } = require('../models');
-
-const MIN_PASSWORD_LENGTH = 6;
 
 /**
  * Helper function that checks if the provided field is a string
@@ -70,7 +68,7 @@ const isEmail = (value) => {
  * @returns {Boolean}
  */
 const isStrongPassword = (value) => {
-	return value.length >= MIN_PASSWORD_LENGTH && /\d+/.test(value) && /[a-z]+/i.test(value);
+	return value.length >= minPasswordLength && /\d+/.test(value) && /[a-z]+/i.test(value);
 };
 
 
@@ -98,7 +96,7 @@ const generateAsyncTasks = (asyncValidations, req) => {
 							if (user) {
 								return {
 									field,
-									error: 'Display name already in use'
+									error: errorCodes.ALREADY_IN_USE
 								};
 							}
 						})
@@ -116,7 +114,7 @@ const generateAsyncTasks = (asyncValidations, req) => {
 							if (user) {
 								return {
 									field,
-									error: 'Email already in use'
+									error: errorCodes.ALREADY_IN_USE
 								};
 							}
 						})
@@ -134,7 +132,7 @@ const generateAsyncTasks = (asyncValidations, req) => {
 							if (!valid) {
 								return {
 									field,
-									error: 'Wrong password'
+									error: errorCodes.WRONG_PASSWORD
 								};
 							}
 						})
@@ -185,7 +183,7 @@ const validate = (rules) => {
 				//"required" rule
 				if (rule === 'required') {
 					if (!isSet(data, files, field)) {
-						errors[field] = 'This field is required';
+						errors[field] = errorCodes.REQUIRED;
 						continue fieldLoop;
 					}
 				}
@@ -193,7 +191,7 @@ const validate = (rules) => {
 				//"boolean" rule
 				if (rule === 'boolean') {
 					if (!isBoolean(fieldValue)) {
-						errors[field] = 'Invalid boolean value';
+						errors[field] = errorCodes.INVALID_BOOLEAN;
 						continue fieldLoop;
 					}
 				}
@@ -201,7 +199,7 @@ const validate = (rules) => {
 				//"integer"
 				if (rule === 'integer') {
 					if (!isInteger(fieldValue)) {
-						errors[field] = 'Invalid integer value';
+						errors[field] = errorCodes.INVALID_INTEGER;
 						continue fieldLoop;
 					}
 				}
@@ -209,7 +207,7 @@ const validate = (rules) => {
 				//"email" rule
 				if (rule === 'email') {
 					if (!isEmail(fieldValue)) {
-						errors[field] = 'Invalid email';
+						errors[field] = errorCodes.INVALID_EMAIL;
 						continue fieldLoop;
 					}
 				}
@@ -217,7 +215,7 @@ const validate = (rules) => {
 				//"strong-password" rule
 				if (rule === 'strong-password') {
 					if (!isStrongPassword(fieldValue)) {
-						errors[field] = `Must contain at least ${MIN_PASSWORD_LENGTH} characters, a digit and a letter`;
+						errors[field] = errorCodes.STRONG_PASSWORD_LENGTH_ + minPasswordLength;
 						continue fieldLoop;
 					}
 				}
@@ -226,18 +224,18 @@ const validate = (rules) => {
 				if (rule === 'valid-avatar') {
 					const file = files[field];
 					const extension = path.extname(file.originalFilename).replace('.', '').toLowerCase();
-					const maxSize = config.uploads.avatars.maxSize;
-					const validExtensions = config.uploads.avatars.validExtensions;
+					const maxSize = uploads.avatars.maxSize;
+					const validExtensions = uploads.avatars.validExtensions;
 
 					//max file size
 					if (file.size > maxSize) {
-						errors[field] = `The avatar is bigger than ${maxSize / 1000000}MB`;
+						errors[field] = errorCodes.EXCEEDS_MAX_FILE_SIZE_ + maxSize;
 						continue fieldLoop;
 					}
 
 					//valid extensions
 					if (validExtensions.indexOf(extension) === -1) {
-						errors[field] = `Invalid file. (Valid extensions: ${validExtensions.join(', ')})`;
+						errors[field] = `${errorCodes.INVALID_FILE_EXTENSION_}[${validExtensions.join(',')}]`;
 						continue fieldLoop;
 					}
 				}
@@ -249,7 +247,7 @@ const validate = (rules) => {
 					const limit = minMatches[1];
 
 					if (fieldValue.trim().length < limit) {
-						errors[field] = `Must be at least ${limit} chracters`;
+						errors[field] = errorCodes.BELOW_CHARACTERS_ + limit;
 						continue fieldLoop;
 					}
 				}
@@ -261,7 +259,7 @@ const validate = (rules) => {
 					const limit = maxMatches[1];
 
 					if (fieldValue.trim().length > limit) {
-						errors[field] = `Must not exceed ${limit} chracters`;
+						errors[field] = errorCodes.EXCEEDS_CHARACTERS_ + limit;
 						continue fieldLoop;
 					}
 				}
@@ -273,7 +271,7 @@ const validate = (rules) => {
 					const matchField = matches[1];
 
 					if (fieldValue !== data[matchField]) {
-						errors[field] = "The fields don't match";
+						errors[field] = errorCodes.FIELDS_DONT_MATCH;
 						continue fieldLoop;
 					}
 				}
@@ -291,7 +289,7 @@ const validate = (rules) => {
 					});
 
 					if (index === -1) {
-						errors[field] = `Invalid value. (Accepted values: ${values.join(', ')})`;
+						errors[field] = `${errorCodes.NOT_IN_LIST_}[${values.join(',')}]`;
 						continue fieldLoop;
 					}
 				}
