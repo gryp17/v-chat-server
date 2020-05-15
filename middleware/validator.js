@@ -1,5 +1,4 @@
 const path = require('path');
-const async = require('async');
 const _ = require('lodash');
 const { sendError, compareHash } = require('../utils');
 const config = require('../config');
@@ -90,63 +89,56 @@ const generateAsyncTasks = (asyncValidations, req) => {
 			if (validation.rule === 'unique') {
 				//unique displayName
 				if (validation.field === 'displayName') {
-					asyncTasks.push((done) => {
+					asyncTasks.push(
 						User.findOne({
 							where: {
 								displayName: validation.fieldValue.trim()
 							}
 						}).then((user) => {
 							if (user) {
-								done(null, {
+								return {
 									field,
 									error: 'Display name already in use'
-								});
-							} else {
-								done(null);
+								};
 							}
-						});
-					});
+						})
+					);
 				}
 
 				//unique email
 				if (validation.field === 'email') {
-					asyncTasks.push((done) => {
+					asyncTasks.push(
 						User.findOne({
 							where: {
 								email: validation.fieldValue.trim()
 							}
 						}).then((user) => {
 							if (user) {
-								done(null, {
+								return {
 									field,
 									error: 'Email already in use'
-								});
-							} else {
-								done(null);
+								};
 							}
-						});
-					});
+						})
+					);
 				}
 			}
 
 			//"current-password" rule
 			if (validation.rule === 'current-password') {
-				asyncTasks.push((done) => {
-					User.findByPk(req.user.id).then((user) => {
-						compareHash(validation.fieldValue, user.password).then((valid) => {
+				asyncTasks.push(
+					User.findByPk(req.user.id)
+						.then((user) => {
+							return compareHash(validation.fieldValue, user.password);
+						}).then((valid) => {
 							if (!valid) {
-								done(null, {
+								return {
 									field,
 									error: 'Wrong password'
-								});
+								};
 							}
-
-							done(null);
-						});
-					}).catch((err) => {
-						done(err);
-					});
-				});
+						})
+				);
 			}
 		});
 	});
@@ -321,11 +313,7 @@ const validate = (rules) => {
 		}
 
 		//run all async tasks (if there are any)
-		async.parallel(generateAsyncTasks(asyncValidations, req), (err, validationErrors) => {
-			if (err) {
-				return next(err);
-			}
-
+		Promise.all(generateAsyncTasks(asyncValidations, req)).then((validationErrors) => {
 			//check if there are any async validation errors
 			validationErrors.forEach((validationError) => {
 				if (validationError) {
@@ -338,6 +326,8 @@ const validate = (rules) => {
 			} else {
 				next();
 			}
+		}).catch((err) => {
+			next(err);
 		});
 	};
 };
