@@ -23,6 +23,7 @@ app.use(express.static('./public'));
 
 //routes
 app.use('/auth', require('./routes/auth'));
+app.use('/conversations', require('./routes/conversations'));
 
 //catch 404 and forward to error handler
 app.use((req, res, next) => {
