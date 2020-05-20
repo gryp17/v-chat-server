@@ -29,6 +29,28 @@ const User = db.define('user', {
 	}
 });
 
+const Conversation = db.define('conversation', {
+	name: {
+		type: Sequelize.STRING
+	}
+});
+
+const UserConversation = db.define('user_conversation');
+
+const Message = db.define('message', {
+	content: {
+		type: Sequelize.STRING
+	}
+});
+
+User.belongsToMany(Conversation, {
+	through: UserConversation
+});
+
+Message.belongsTo(User);
+Message.belongsTo(Conversation);
+
+
 /**
  * Syncs the models and the mysql tables
  */
@@ -46,18 +68,37 @@ const syncAndSeed = () => {
 	return sync().then(() => {
 		return makeHash('1234');
 	}).then((hashedPassword) => {
-		User.create({
+		return User.create({
 			email: 'plamen@abv.bg',
 			password: hashedPassword,
 			displayName: 'Plamen',
 			bio: null,
 			avatar: null
 		});
+	}).then((userInstance) => {
+		//create the global conversation and join it with the newly created user
+		Conversation.create({
+			name: 'Global'
+		}).then((conversationInstance) => {
+			return UserConversation.create({
+				userId: userInstance.id,
+				conversationId: conversationInstance.id
+			}).then(() => {
+				Message.create({
+					content: 'hi there',
+					userId: userInstance.id,
+					conversationId: conversationInstance.id
+				});
+			});
+		});
 	});
 };
 
 module.exports = {
 	User,
+	Conversation,
+	UserConversation,
+	Message,
 	sync,
 	syncAndSeed
 };
