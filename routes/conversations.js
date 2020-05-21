@@ -7,8 +7,6 @@ const { sendResponse, sendApiError } = require('../utils');
 const router = express.Router();
 
 router.get('/', verifyToken, (req, res) => {
-	//TODO: try to return only the necessary data (conversation data and users list)
-
 	//find all conversations that the current user is part of
 	Conversation.findAll({
 		include: {
@@ -17,6 +15,11 @@ router.get('/', verifyToken, (req, res) => {
 				where: {
 					userId: req.user.id
 				}
+			},
+			attributes: {
+				exclude: [
+					'password'
+				]
 			}
 		}
 	}).then((conversations) => {
