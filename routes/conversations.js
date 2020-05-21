@@ -1,12 +1,12 @@
 
 const express = require('express');
-const { verifyToken } = require('../middleware/authentication');
+const { isLoggedIn } = require('../middleware/authentication');
 const { Conversation, User } = require('../models');
 const { sendResponse, sendApiError } = require('../utils');
 
 const router = express.Router();
 
-router.get('/', verifyToken, (req, res) => {
+router.get('/', isLoggedIn, (req, res) => {
 	//find all conversations that the current user is part of
 	Conversation.findAll({
 		include: {

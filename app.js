@@ -1,16 +1,30 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const createSocket = require('socket.io');
 const config = require('./config');
 const models = require('./models'); //eslint-disable-line
+const { sockedIsLoggedIn } = require('./middleware/authentication');
 const { sendApiError } = require('./utils');
 const app = module.exports = express();
 
 //sync the db models (only when necessary)
 //models.syncAndSeed();
 
-app.listen(config.port, () => {
+const server = app.listen(config.port, () => {
 	console.log(`listening on port ${config.port}`);
+});
+
+//setup the socket.io listeners
+const io = createSocket(server);
+
+//checks if the socket.io requests are authorized
+io.use(sockedIsLoggedIn);
+
+io.on('connection', (socket) => {
+	console.log('RECEIVED NEW SOCKET CONNECTION!!!!!!!!!!!');
+
+	io.emit('test', 'test');
 });
 
 app.use(cors({

@@ -3,7 +3,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 const { User } = require('../models');
-const { verifyToken } = require('../middleware/authentication');
+const { isLoggedIn } = require('../middleware/authentication');
 const { validate } = require('../middleware/validator');
 const { sendResponse, sendError, sendApiError, compareHash, makeHash } = require('../utils');
 
@@ -96,7 +96,7 @@ router.post('/signup', validate(rules.signup), (req, res, next) => {
 	});
 });
 
-router.get('/session', verifyToken, (req, res, next) => {
+router.get('/session', isLoggedIn, (req, res, next) => {
 	sendResponse(res, {
 		user: req.user
 	});

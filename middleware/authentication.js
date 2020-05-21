@@ -2,21 +2,39 @@ const jwt = require('jsonwebtoken');
 const config = require('../config');
 const { sendApiError } = require('../utils');
 
-module.exports = {
-	verifyToken(req, res, next) {
-		const token = req.body.token || req.query.token || req.headers.token;
+const verifyToken = (token) => {
+	if (!token) {
+		return false;
+	}
 
-		if (!token) {
-			return sendApiError(res, 'Missing authentication token');
+	try {
+		return jwt.verify(token, config.auth.secret);
+	} catch (err) {
+		return false;
+	}
+};
+
+module.exports = {
+	isLoggedIn(req, res, next) {
+		const token = req.body.token || req.query.token || req.headers.token;
+		const user = verifyToken(token);
+
+		if (!user) {
+			return sendApiError(res, 'Invalid authentication token');
 		}
 
-		jwt.verify(token, config.auth.secret, (err, user) => {
-			if (err) {
-				return sendApiError(res, 'Invalid authentication token');
-			}
+		req.user = user;
+		next();
+	},
+	sockedIsLoggedIn(socket, next) {
+		const token = socket.handshake.query.token;
+		const user = verifyToken(token);
 
-			req.user = user;
-			next();
-		});
+		if (!user) {
+			return next('Invalid authentication token');
+		}
+
+		socket.user = user;
+		next();
 	}
 };
