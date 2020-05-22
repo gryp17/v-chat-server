@@ -1,29 +1,36 @@
 const createSocket = require('socket.io');
 const { sockedIsLoggedIn } = require('../middleware/authentication');
-const { Conversation, User, Message } = require('../models');
+const { UserConversation, Conversation, User, Message } = require('../models');
 const { sendSocketError } = require('../utils');
 
 function getUserConversations(userId) {
-	return Conversation.findAll({
-		include: [
-			{
-				model: User,
-				through: {
-					where: {
-						userId
+	return UserConversation.findAll({
+		where: {
+			userId
+		},
+		raw: true
+	}).map((userConversation) => {
+		return userConversation.conversationId;
+	}).then((conversationIds) => {
+		return Conversation.findAll({
+			where: {
+				id: conversationIds
+			},
+			include: [
+				{
+					model: User,
+					attributes: {
+						exclude: [
+							'password'
+						]
 					}
 				},
-				attributes: {
-					exclude: [
-						'password'
-					]
+				{
+					model: Message,
+					limit: 5
 				}
-			},
-			{
-				model: Message,
-				limit: 5
-			}
-		]
+			]
+		});
 	});
 }
 
