@@ -51,8 +51,11 @@ Conversation.belongsToMany(User, {
 	through: UserConversation
 });
 
-Message.belongsTo(User);
+Conversation.hasMany(Message);
 Message.belongsTo(Conversation);
+
+User.hasMany(Message);
+Message.belongsTo(User);
 
 
 /**
