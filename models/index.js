@@ -32,6 +32,10 @@ const User = db.define('user', {
 const Conversation = db.define('conversation', {
 	name: {
 		type: Sequelize.STRING
+	},
+	isPrivate: {
+		type: Sequelize.BOOLEAN,
+		defaultValue: false
 	}
 });
 
@@ -72,27 +76,40 @@ const sync = () => {
  * Syncs the models and then inserts the seed data
  */
 const syncAndSeed = () => {
-	return sync().then(() => {
-		return makeHash('1234');
-	}).then((hashedPassword) => {
-		return User.create({
+	const users = [
+		{
 			email: 'plamen@abv.bg',
-			password: hashedPassword,
-			displayName: 'Plamen',
-			bio: null,
-			avatar: null
-		});
-	}).then((userInstance) => {
-		//create the global conversation and join it with the newly created user
-		Conversation.create({
+			displayName: 'Plamen'
+		},
+		{
+			email: 'fran@gmail.com',
+			displayName: 'Fran'
+		},
+		{
+			email: 'jacobo@gmail.com',
+			displayName: 'Jacobo'
+		}
+	];
+
+	return sync().then(() => {
+		//add the global conversation
+		return Conversation.create({
 			name: 'Global'
-		}).then((conversationInstance) => {
-			return UserConversation.create({
-				userId: userInstance.id,
-				conversationId: conversationInstance.id
-			}).then(() => {
+		});
+	}).then((conversationInstance) => {
+		//add all the seed users and join the global conversation
+		makeHash('1234').then((hashedPassword) => {
+			return Promise.all(users.map((user) => {
+				return conversationInstance.createUser({
+					...user,
+					password: hashedPassword
+				});
+			}));
+		}).then((userInstances) => {
+			//send a message from each user
+			userInstances.forEach((userInstance) => {
 				Message.create({
-					content: 'hi there',
+					content: `I am ${userInstance.displayName}`,
 					userId: userInstance.id,
 					conversationId: conversationInstance.id
 				});
