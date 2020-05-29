@@ -5,19 +5,26 @@ const { UserConversation, Conversation, User, Message } = require('../models');
 const { sendSocketError } = require('../utils');
 
 module.exports = (server) => {
-	const io = createSocket(server);
+	const chat = createSocket(server);
 
 	//checks if the socket.io requests are authorized
-	io.use(sockedIsLoggedIn);
+	chat.use(sockedIsLoggedIn);
 
-	io.on('connection', (socket) => {
+	chat.on('connection', (socket) => {
 		//update the online users list for everybody
-		io.emit('updateOnlineUsers', getConnectedUsers());
+		chat.emit('updateOnlineUsers', chat.getConnectedUsers());
 
-		getUserConversations(socket.user.id).then((conversations) => {
+		chat.getUserConversations(socket.user.id).then((conversations) => {
 			socket.emit('updateConversations', conversations);
 		}).catch((err) => {
-			sendSocketError(io, err);
+			sendSocketError(chat, err);
+		});
+
+		//TODO: add the updateConversationUsers event that will be sent to all users when a new user signs up
+
+		//disconnect event handler
+		socket.on('disconnect', () => {
+			chat.emit('updateOnlineUsers', chat.getConnectedUsers());
 		});
 	});
 
@@ -25,19 +32,19 @@ module.exports = (server) => {
 	 * Helper function that returns an array of all connected users
 	 * @returns {Array}
 	 */
-	function getConnectedUsers() {
+	chat.getConnectedUsers = () => {
 		const users = [];
 
-		_.forOwn(io.sockets.connected, (data, socketId) => {
+		_.forOwn(chat.sockets.connected, (data, socketId) => {
 			//set the socketId parameter
 			data.user.socketId = socketId;
 			users.push(data.user);
 		});
 
 		return users;
-	}
+	};
 
-	function getUserConversations(userId) {
+	chat.getUserConversations = (userId) => {
 		return UserConversation.findAll({
 			where: {
 				userId
@@ -66,5 +73,7 @@ module.exports = (server) => {
 				]
 			});
 		});
-	}
+	};
+
+	return chat;
 };
