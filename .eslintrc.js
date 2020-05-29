@@ -42,6 +42,7 @@ module.exports = {
 		'import/no-extraneous-dependencies': 0,
 		'newline-per-chained-call': 0,
 		'no-new': 0,
-		'indent': ['error', 'tab']
+		'indent': ['error', 'tab'],
+		'no-use-before-define': 0
 	}
 };
