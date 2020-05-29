@@ -14,7 +14,8 @@ const server = app.listen(config.port, () => {
 });
 
 //initialize the sockets
-require('./sockets')(server);
+const chat = require('./sockets')(server);
+app.set('chat', chat);
 
 app.use(cors({
 	credentials: true,

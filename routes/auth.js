@@ -2,7 +2,8 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
-const { User } = require('../models');
+const { User, Conversation } = require('../models');
+const app = require('../app');
 const { isLoggedIn } = require('../middleware/authentication');
 const { validate } = require('../middleware/validator');
 const { sendResponse, sendError, sendApiError, compareHash, makeHash } = require('../utils');
@@ -72,6 +73,8 @@ router.post('/signup', validate(rules.signup), (req, res, next) => {
 	const displayName = req.body.displayName;
 	const password = req.body.password;
 
+	const chat = app.get('chat');
+
 	makeHash(password).then((hashedPassword) => {
 		return User.create({
 			email,
@@ -79,8 +82,19 @@ router.post('/signup', validate(rules.signup), (req, res, next) => {
 			displayName,
 			avatar: config.uploads.avatars.defaultAvatar
 		});
-	}).then((record) => {
-		const user = record.toJSON();
+	}).then((userInstance) => {
+		const globalConversationId = 1;
+
+		//automatically join the global conversation
+		return Conversation.findByPk(globalConversationId).then((conversationInstance) => {
+			return conversationInstance.addUser(userInstance);
+		}).then(() => {
+			//notify all connected users about the new user
+			chat.updateConversationUsers(globalConversationId);
+			return userInstance;
+		});
+	}).then((userInstance) => {
+		const user = userInstance.toJSON();
 		delete user.password;
 
 		const token = jwt.sign(user, config.auth.secret, {

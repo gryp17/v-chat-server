@@ -16,17 +16,36 @@ module.exports = (server) => {
 
 		chat.getUserConversations(socket.user.id).then((conversations) => {
 			socket.emit('updateConversations', conversations);
-		}).catch((err) => {
-			sendSocketError(chat, err);
 		});
-
-		//TODO: add the updateConversationUsers event that will be sent to all users when a new user signs up
 
 		//disconnect event handler
 		socket.on('disconnect', () => {
 			chat.emit('updateOnlineUsers', chat.getConnectedUsers());
 		});
 	});
+
+	chat.updateConversationUsers = (conversationId) => {
+		Conversation.findByPk(conversationId, {
+			include: [
+				{
+					model: User,
+					attributes: {
+						exclude: [
+							'password'
+						]
+					}
+				}
+			]
+		}).then((conversation) => {
+			const users = conversation.toJSON().users;
+			chat.emit('updateConversationUsers', {
+				conversationId,
+				users
+			});
+		}).catch((err) => {
+			sendSocketError(chat, err);
+		});
+	};
 
 	/**
 	 * Helper function that returns an array of all connected users
@@ -72,6 +91,8 @@ module.exports = (server) => {
 					}
 				]
 			});
+		}).catch((err) => {
+			sendSocketError(chat, err);
 		});
 	};
 
