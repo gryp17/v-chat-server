@@ -1,7 +1,7 @@
 
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const config = require('../config');
+const { auth, uploads, errorCodes } = require('../config');
 const { User, Conversation } = require('../models');
 const app = require('../app');
 const { isLoggedIn } = require('../middleware/authentication');
@@ -40,21 +40,21 @@ router.post('/login', validate(rules.login), (req, res, next) => {
 	}).then((record) => {
 		if (!record) {
 			return sendError(res, {
-				password: 'Wrong email or password'
+				password: errorCodes.WRONG_PASSWORD
 			});
 		}
 
 		compareHash(password, record.password).then((valid) => {
 			if (!valid) {
 				return sendError(res, {
-					password: 'Wrong email or password'
+					password: errorCodes.WRONG_PASSWORD
 				});
 			}
 
 			const user = record.toJSON();
 			delete user.password;
 
-			const token = jwt.sign(user, config.auth.secret, {
+			const token = jwt.sign(user, auth.secret, {
 				expiresIn: 86400 // expires in 24 hours
 			});
 
@@ -80,7 +80,7 @@ router.post('/signup', validate(rules.signup), (req, res, next) => {
 			email,
 			password: hashedPassword,
 			displayName,
-			avatar: config.uploads.avatars.defaultAvatar
+			avatar: uploads.avatars.defaultAvatar
 		});
 	}).then((userInstance) => {
 		const globalConversationId = 1;
@@ -97,7 +97,7 @@ router.post('/signup', validate(rules.signup), (req, res, next) => {
 		const user = userInstance.toJSON();
 		delete user.password;
 
-		const token = jwt.sign(user, config.auth.secret, {
+		const token = jwt.sign(user, auth.secret, {
 			expiresIn: 86400 // expires in 24 hours
 		});
 
