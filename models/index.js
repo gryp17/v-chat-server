@@ -43,7 +43,7 @@ const UserConversation = db.define('user_conversation');
 
 const Message = db.define('message', {
 	content: {
-		type: Sequelize.STRING
+		type: Sequelize.STRING(1400)
 	}
 });
 
