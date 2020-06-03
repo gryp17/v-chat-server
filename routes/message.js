@@ -1,5 +1,6 @@
 
 const express = require('express');
+const app = require('../app');
 const { isLoggedIn } = require('../middleware/authentication');
 const { validate } = require('../middleware/validator');
 const { UserConversation, Message } = require('../models');
@@ -15,6 +16,7 @@ const rules = {
 };
 
 router.post('/', isLoggedIn, validate(rules.addMessage), (req, res) => {
+	const chat = app.get('chat');
 	const { conversationId, content } = req.body;
 
 	UserConversation.findOne({
@@ -33,10 +35,8 @@ router.post('/', isLoggedIn, validate(rules.addMessage), (req, res) => {
 			userId: req.user.id
 		});
 	}).then((messageRecord) => {
-		//TODO: change the content field max length. currently its 255...
-		//TODO: insert the message and send a socket.io even to all conversation users
+		chat.sendMessage(conversationId, messageRecord.toJSON());
 		//TODO: think of a way to check if the message/conversation has unread messages for each user (maybe add unread flag in the user-conversation table)
-
 		sendResponse(res, messageRecord);
 	}).catch((err) => {
 		sendApiError(res, err);

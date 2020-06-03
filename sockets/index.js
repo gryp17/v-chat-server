@@ -87,9 +87,35 @@ module.exports = (server) => {
 					},
 					{
 						model: Message,
-						limit: 5
+						limit: 5,
+						order: [
+							['createdAt', 'desc']
+						]
 					}
 				]
+			});
+		}).filter((conversation) => {
+			//return only conversations that have messages
+			return conversation.messages && conversation.messages.length > 0;
+		}).catch((err) => {
+			sendSocketError(chat, err);
+		});
+	};
+
+	chat.sendMessage = (conversationId, message) => {
+		UserConversation.findAll({
+			where: {
+				conversationId
+			}
+		}).map((record) => {
+			return record.userId;
+		}).then((userIds) => {
+			const connectedUsers = chat.getConnectedUsers();
+			//broadcast the message to all users that belong to this conversation
+			connectedUsers.forEach((user) => {
+				if (userIds.includes(user.id)) {
+					chat.to(user.socketId).emit('message', message);
+				}
 			});
 		}).catch((err) => {
 			sendSocketError(chat, err);
