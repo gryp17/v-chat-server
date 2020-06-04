@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const createSocket = require('socket.io');
 const { sockedIsLoggedIn } = require('../middleware/authentication');
-const { UserConversation, Conversation, User, Message } = require('../models');
+const { UserConversation, Conversation, User } = require('../models');
 const { sendSocketError } = require('../utils');
 
 module.exports = (server) => {
@@ -12,15 +12,11 @@ module.exports = (server) => {
 
 	chat.on('connection', (socket) => {
 		//update the online users list for everybody
-		chat.emit('updateOnlineUsers', chat.getConnectedUsers());
-
-		chat.getUserConversations(socket.user.id).then((conversations) => {
-			socket.emit('updateConversations', conversations);
-		});
+		chat.updateOnlineUsers();
 
 		//disconnect event handler
 		socket.on('disconnect', () => {
-			chat.emit('updateOnlineUsers', chat.getConnectedUsers());
+			chat.updateOnlineUsers();
 		});
 	});
 
@@ -63,43 +59,12 @@ module.exports = (server) => {
 		return users;
 	};
 
-	chat.getUserConversations = (userId) => {
-		return UserConversation.findAll({
-			where: {
-				userId
-			},
-			raw: true
-		}).map((userConversation) => {
-			return userConversation.conversationId;
-		}).then((conversationIds) => {
-			return Conversation.findAll({
-				where: {
-					id: conversationIds
-				},
-				include: [
-					{
-						model: User,
-						attributes: {
-							exclude: [
-								'password'
-							]
-						}
-					},
-					{
-						model: Message,
-						limit: 5,
-						order: [
-							['createdAt', 'desc']
-						]
-					}
-				]
-			});
-		}).filter((conversation) => {
-			//return only conversations that have messages
-			return conversation.messages && conversation.messages.length > 0;
-		}).catch((err) => {
-			sendSocketError(chat, err);
+	chat.updateOnlineUsers = () => {
+		const ids = chat.getConnectedUsers().map((user) => {
+			return user.id;
 		});
+
+		chat.emit('updateOnlineUsers', ids);
 	};
 
 	chat.sendMessage = (conversationId, message) => {

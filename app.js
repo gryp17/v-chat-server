@@ -27,6 +27,8 @@ app.use(express.static('./public'));
 
 //routes
 app.use('/auth', require('./routes/auth'));
+app.use('/conversation', require('./routes/conversation'));
+app.use('/user', require('./routes/user'));
 app.use('/message', require('./routes/message'));
 
 //catch 404 and forward to error handler
