@@ -2,12 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const config = require('./config');
-const models = require('./models'); //eslint-disable-line
 const { sendApiError } = require('./utils');
 const app = module.exports = express();
-
-//sync the db models (only when necessary)
-//models.syncAndSeed();
 
 const server = app.listen(config.port, () => {
 	console.log(`listening on port ${config.port}`);

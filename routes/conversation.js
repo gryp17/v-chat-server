@@ -7,12 +7,15 @@ const { sendResponse, sendApiError } = require('../utils');
 const router = express.Router();
 
 router.get('/all', isLoggedIn, (req, res) => {
+	const unreadState = {};
+
 	UserConversation.findAll({
 		raw: true,
 		where: {
 			userId: req.user.id
 		}
 	}).map((userConversation) => {
+		unreadState[userConversation.conversationId] = Boolean(userConversation.unread);
 		return userConversation.conversationId;
 	}).then((conversationIds) => {
 		return Conversation.findAll({
@@ -45,6 +48,9 @@ router.get('/all', isLoggedIn, (req, res) => {
 		item.users = item.users.map((user) => {
 			return user.id;
 		});
+
+		//set the unread property
+		item.unread = unreadState[item.id];
 
 		return item;
 	}).then((conversations) => {

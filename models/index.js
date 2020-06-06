@@ -39,7 +39,12 @@ const Conversation = db.define('conversation', {
 	}
 });
 
-const UserConversation = db.define('user_conversation');
+const UserConversation = db.define('user_conversation', {
+	unread: {
+		type: Sequelize.BOOLEAN,
+		defaultValue: false
+	}
+});
 
 const Message = db.define('message', {
 	content: {
