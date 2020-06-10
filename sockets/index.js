@@ -76,7 +76,8 @@ module.exports = (server) => {
 			return record.userId;
 		}).then((userIds) => {
 			const connectedUsers = chat.getConnectedUsers();
-			//broadcast the message to all users that belong to this conversation
+
+			//broadcast the message to all online users that belong to this conversation
 			connectedUsers.forEach((user) => {
 				if (userIds.includes(user.id)) {
 					chat.to(user.socketId).emit('message', message);

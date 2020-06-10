@@ -60,4 +60,27 @@ router.get('/all', isLoggedIn, (req, res) => {
 	});
 });
 
+router.post('/markAsRead', isLoggedIn, (req, res) => {
+	const { conversationId } = req.body;
+
+	UserConversation.findOne({
+		where: {
+			conversationId,
+			userId: req.user.id
+		}
+	}).then((record) => {
+		if (!record) {
+			return sendApiError(res, 'Invalid conversation id');
+		}
+
+		record.update({
+			unread: false
+		}).then((updated) => {
+			sendResponse(res, updated.toJSON());
+		});
+	}).catch((err) => {
+		sendApiError(res, err);
+	});
+});
+
 module.exports = router;

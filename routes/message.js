@@ -1,4 +1,5 @@
 
+const sequelize = require('sequelize');
 const express = require('express');
 const app = require('../app');
 const { isLoggedIn } = require('../middleware/authentication');
@@ -24,8 +25,8 @@ router.post('/', isLoggedIn, validate(rules.addMessage), (req, res) => {
 			conversationId,
 			userId: req.user.id
 		}
-	}).then((record) => {
-		if (!record) {
+	}).then((userConversationRecord) => {
+		if (!userConversationRecord) {
 			return sendApiError(res, 'Invalid conversation id');
 		}
 
@@ -33,10 +34,23 @@ router.post('/', isLoggedIn, validate(rules.addMessage), (req, res) => {
 			conversationId,
 			content,
 			userId: req.user.id
+		}).then((messageRecord) => {
+			//mark the conversation as unread for all users except the message author
+			return UserConversation.update({
+				unread: true
+			}, {
+				where: {
+					conversationId,
+					userId: {
+						[sequelize.Op.not]: req.user.id
+					}
+				}
+			}).then(() => {
+				return messageRecord;
+			});
 		});
 	}).then((messageRecord) => {
 		chat.sendMessage(conversationId, messageRecord.toJSON());
-		//TODO: think of a way to check if the message/conversation has unread messages for each user (maybe add unread flag in the user-conversation table)
 		sendResponse(res, messageRecord);
 	}).catch((err) => {
 		sendApiError(res, err);
