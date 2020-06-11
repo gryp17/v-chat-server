@@ -20,24 +20,26 @@ module.exports = (server) => {
 		});
 	});
 
-	chat.updateConversationUsers = (conversationId) => {
-		Conversation.findByPk(conversationId, {
+	chat.newUser = (userId) => {
+		User.findByPk(userId, {
+			attributes: {
+				exclude: [
+					'password'
+				]
+			},
 			include: [
 				{
-					model: User,
-					attributes: {
-						exclude: [
-							'password'
-						]
-					}
+					model: Conversation
 				}
 			]
-		}).then((conversation) => {
-			const users = conversation.toJSON().users;
-			chat.emit('updateConversationUsers', {
-				conversationId,
-				users
+		}).then((user) => {
+			const userJson = user.toJSON();
+
+			userJson.conversations = userJson.conversations.map((conversation) => {
+				return conversation.id;
 			});
+
+			chat.emit('newUser', userJson);
 		}).catch((err) => {
 			sendSocketError(chat, err);
 		});

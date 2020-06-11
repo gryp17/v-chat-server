@@ -90,7 +90,7 @@ router.post('/signup', validate(rules.signup), (req, res, next) => {
 			return conversationInstance.addUser(userInstance);
 		}).then(() => {
 			//notify all connected users about the new user
-			chat.updateConversationUsers(globalConversationId);
+			chat.newUser(userInstance.id);
 			return userInstance;
 		});
 	}).then((userInstance) => {
