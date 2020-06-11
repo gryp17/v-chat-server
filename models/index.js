@@ -107,6 +107,7 @@ const syncAndSeed = () => {
 			return Promise.all(users.map((user) => {
 				return conversationInstance.createUser({
 					...user,
+					avatar: config.uploads.avatars.defaultAvatar,
 					password: hashedPassword
 				});
 			}));
