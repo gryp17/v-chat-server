@@ -20,19 +20,21 @@ module.exports = (server) => {
 		});
 	});
 
-	chat.newUser = (userId) => {
-		User.findByPk(userId, {
-			attributes: {
-				exclude: [
-					'password'
+	chat.newUser = async (userId) => {
+		try {
+			const user = await User.findByPk(userId, {
+				attributes: {
+					exclude: [
+						'password'
+					]
+				},
+				include: [
+					{
+						model: Conversation
+					}
 				]
-			},
-			include: [
-				{
-					model: Conversation
-				}
-			]
-		}).then((user) => {
+			});
+
 			const userJson = user.toJSON();
 
 			userJson.conversations = userJson.conversations.map((conversation) => {
@@ -40,9 +42,9 @@ module.exports = (server) => {
 			});
 
 			chat.emit('newUser', userJson);
-		}).catch((err) => {
+		} catch (err) {
 			sendSocketError(chat, err);
-		});
+		}
 	};
 
 	chat.newConversation = (conversation, userIds) => {
@@ -80,14 +82,16 @@ module.exports = (server) => {
 		chat.emit('updateOnlineUsers', ids);
 	};
 
-	chat.sendMessage = (conversationId, message) => {
-		UserConversation.findAll({
-			where: {
-				conversationId
-			}
-		}).map((record) => {
-			return record.userId;
-		}).then((userIds) => {
+	chat.sendMessage = async (conversationId, message) => {
+		try {
+			const userIds = await UserConversation.findAll({
+				where: {
+					conversationId
+				}
+			}).map((record) => {
+				return record.userId;
+			});
+
 			const connectedUsers = chat.getConnectedUsers();
 
 			//broadcast the message to all online users that belong to this conversation
@@ -96,9 +100,9 @@ module.exports = (server) => {
 					chat.to(user.socketId).emit('message', message);
 				}
 			});
-		}).catch((err) => {
+		} catch (err) {
 			sendSocketError(chat, err);
-		});
+		}
 	};
 
 	return chat;
