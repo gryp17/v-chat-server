@@ -36,7 +36,8 @@ const Conversation = db.define('conversation', {
 	isPrivate: {
 		type: Sequelize.BOOLEAN,
 		defaultValue: false
-	}
+	},
+	createdBy: Sequelize.INTEGER
 });
 
 const UserConversation = db.define('user_conversation', {

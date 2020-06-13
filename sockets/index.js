@@ -45,6 +45,17 @@ module.exports = (server) => {
 		});
 	};
 
+	chat.newConversation = (conversation, userIds) => {
+		const connectedUsers = chat.getConnectedUsers();
+
+		//broadcast the message to the users that are online
+		connectedUsers.forEach((user) => {
+			if (userIds.includes(user.id)) {
+				chat.to(user.socketId).emit('newConversation', conversation);
+			}
+		});
+	};
+
 	/**
 	 * Helper function that returns an array of all connected users
 	 * @returns {Array}

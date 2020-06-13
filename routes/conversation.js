@@ -1,5 +1,6 @@
 
 const express = require('express');
+const app = require('../app');
 const { isLoggedIn } = require('../middleware/authentication');
 const { Conversation, User, UserConversation, Message } = require('../models');
 const { sendResponse, sendApiError } = require('../utils');
@@ -38,9 +39,6 @@ router.get('/all', isLoggedIn, (req, res) => {
 				}
 			]
 		});
-	}).filter((conversation) => {
-		//return only conversations that have messages
-		return conversation.messages && conversation.messages.length > 0;
 	}).map((conversation) => {
 		//flatten the users array
 		const item = conversation.toJSON();
@@ -70,7 +68,7 @@ router.post('/markAsRead', isLoggedIn, (req, res) => {
 		}
 	}).then((record) => {
 		if (!record) {
-			return sendApiError(res, 'Invalid conversation id');
+			throw new Error('Invalid conversation id');
 		}
 
 		record.update({
@@ -82,5 +80,79 @@ router.post('/markAsRead', isLoggedIn, (req, res) => {
 		sendApiError(res, err);
 	});
 });
+
+//create conversation
+router.post('/', isLoggedIn, (req, res) => {
+	const chat = app.get('chat');
+
+	const { userId } = req.body;
+
+	User.findByPk(userId).then((userInstance) => {
+		if (!userInstance) {
+			throw new Error('Invalid user id');
+		}
+	}).then(() => {
+		return conversationExists(req.user.id, userId);
+	}).then((conversationExists) => {
+		if (conversationExists) {
+			throw new Error('Duplicate conversation');
+		}
+
+		Conversation.create({
+			isPrivate: true,
+			createdBy: req.user.id
+		}).then((conversationInstance) => {
+			const tasks = [req.user.id, userId].map((id) => {
+				const user = User.build({
+					id
+				});
+
+				return conversationInstance.addUser(user);
+			});
+
+			Promise.all(tasks).then(() => {
+				const conversation = conversationInstance.toJSON();
+				conversation.unread = false;
+				conversation.users = [req.user.id, userId];
+				conversation.messages = [];
+
+				//send the new conversation via socket.io to both users
+				chat.newConversation(conversation, [req.user.id, userId]);
+
+				sendResponse(res, conversation);
+			});
+		});
+	}).catch((err) => {
+		sendApiError(res, err);
+	});
+});
+
+function conversationExists(currentUserId, userId) {
+	return User.findByPk(currentUserId, {
+		include: [
+			{
+				model: Conversation,
+				include: [
+					{
+						model: User,
+						attributes: [
+							'id'
+						]
+					}
+				]
+			}
+		]
+	}).then((userInstance) => {
+		const conversation = userInstance.conversations.find((conversation) => {
+			return conversation.isPrivate && conversation.users.find((user) => user.id === userId);
+		});
+
+		if (conversation) {
+			return true;
+		}
+
+		return false;
+	});
+}
 
 module.exports = router;
