@@ -81,7 +81,7 @@ const sync = () => {
 /**
  * Syncs the models and then inserts the seed data
  */
-const syncAndSeed = () => {
+const syncAndSeed = async () => {
 	const users = [
 		{
 			email: 'plamen@abv.bg',
@@ -97,32 +97,34 @@ const syncAndSeed = () => {
 		}
 	];
 
-	return sync().then(() => {
-		//add the global conversation
-		return Conversation.create({
+	try {
+		await sync();
+
+		const conversationInstance = await Conversation.create({
 			name: 'Global'
 		});
-	}).then((conversationInstance) => {
+
 		//add all the seed users and join the global conversation
-		makeHash('1234').then((hashedPassword) => {
-			return Promise.all(users.map((user) => {
-				return conversationInstance.createUser({
-					...user,
-					avatar: config.uploads.avatars.defaultAvatar,
-					password: hashedPassword
-				});
-			}));
-		}).then((userInstances) => {
-			//send a message from each user
-			userInstances.forEach((userInstance) => {
-				Message.create({
-					content: `I am ${userInstance.displayName}`,
-					userId: userInstance.id,
-					conversationId: conversationInstance.id
-				});
+		const hashedPassword = await makeHash('1234');
+		const userInstances = await Promise.all(users.map((user) => {
+			return conversationInstance.createUser({
+				...user,
+				avatar: config.uploads.avatars.defaultAvatar,
+				password: hashedPassword
 			});
-		});
-	});
+		}));
+
+		//send a message from each user
+		await Promise.all(userInstances.map((userInstance) => {
+			return Message.create({
+				content: `I am ${userInstance.displayName}`,
+				userId: userInstance.id,
+				conversationId: conversationInstance.id
+			});
+		}));
+	} catch (err) {
+		console.error('Failed to sync the database', err);
+	}
 };
 
 module.exports = {
