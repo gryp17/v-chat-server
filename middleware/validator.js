@@ -88,36 +88,40 @@ const generateAsyncTasks = (asyncValidations, req) => {
 				//unique displayName
 				if (validation.field === 'displayName') {
 					asyncTasks.push(
-						User.findOne({
-							where: {
-								displayName: validation.fieldValue.trim()
-							}
-						}).then((user) => {
+						(async () => {
+							const user = await User.findOne({
+								where: {
+									displayName: validation.fieldValue.trim()
+								}
+							});
+
 							if (user) {
 								return {
 									field,
 									error: errorCodes.ALREADY_IN_USE
 								};
 							}
-						})
+						})()
 					);
 				}
 
 				//unique email
 				if (validation.field === 'email') {
 					asyncTasks.push(
-						User.findOne({
-							where: {
-								email: validation.fieldValue.trim()
-							}
-						}).then((user) => {
+						(async () => {
+							const user = await User.findOne({
+								where: {
+									email: validation.fieldValue.trim()
+								}
+							});
+
 							if (user) {
 								return {
 									field,
 									error: errorCodes.ALREADY_IN_USE
 								};
 							}
-						})
+						})()
 					);
 				}
 			}
@@ -125,17 +129,17 @@ const generateAsyncTasks = (asyncValidations, req) => {
 			//"current-password" rule
 			if (validation.rule === 'current-password') {
 				asyncTasks.push(
-					User.findByPk(req.user.id)
-						.then((user) => {
-							return compareHash(validation.fieldValue, user.password);
-						}).then((valid) => {
-							if (!valid) {
-								return {
-									field,
-									error: errorCodes.WRONG_PASSWORD
-								};
-							}
-						})
+					(async () => {
+						const user = await User.findByPk(req.user.id);
+						const valid = await compareHash(validation.fieldValue, user.password);
+
+						if (!valid) {
+							return {
+								field,
+								error: errorCodes.WRONG_PASSWORD
+							};
+						}
+					})()
 				);
 			}
 		});
@@ -150,7 +154,7 @@ const generateAsyncTasks = (asyncValidations, req) => {
  * @returns {Function}
  */
 const validate = (rules) => {
-	return (req, res, next) => {
+	return async (req, res, next) => {
 		const data = req.body;
 		const files = req.files;
 		const asyncRules = ['unique', 'current-password']; //list of async rules
@@ -311,7 +315,9 @@ const validate = (rules) => {
 		}
 
 		//run all async tasks (if there are any)
-		Promise.all(generateAsyncTasks(asyncValidations, req)).then((validationErrors) => {
+		try {
+			const validationErrors = await Promise.all(generateAsyncTasks(asyncValidations, req));
+
 			//check if there are any async validation errors
 			validationErrors.forEach((validationError) => {
 				if (validationError) {
@@ -324,9 +330,9 @@ const validate = (rules) => {
 			} else {
 				next();
 			}
-		}).catch((err) => {
+		} catch (err) {
 			next(err);
-		});
+		}
 	};
 };
 
