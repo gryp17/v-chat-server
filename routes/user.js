@@ -6,22 +6,23 @@ const { sendResponse, sendApiError } = require('../utils');
 
 const router = express.Router();
 
-router.get('/all', isLoggedIn, (req, res) => {
-	User.findAll({
-		attributes: [
-			'id',
-			'displayName',
-			'bio',
-			'avatar',
-			'createdAt',
-			'updatedAt'
-		]
-	}).then((users) => {
+router.get('/all', isLoggedIn, async (req, res) => {
+	try {
+		const users = await User.findAll({
+			attributes: [
+				'id',
+				'displayName',
+				'bio',
+				'avatar',
+				'createdAt',
+				'updatedAt'
+			]
+		});
+
 		sendResponse(res, users);
-	}).catch((err) => {
-		console.log(err);
+	} catch (err) {
 		sendApiError(res, err);
-	});
+	}
 });
 
 module.exports = router;

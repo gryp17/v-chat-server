@@ -16,45 +16,44 @@ const rules = {
 	}
 };
 
-router.post('/', isLoggedIn, validate(rules.addMessage), (req, res) => {
+router.post('/', isLoggedIn, validate(rules.addMessage), async (req, res) => {
 	const chat = app.get('chat');
 	const { conversationId, content } = req.body;
 
-	UserConversation.findOne({
-		where: {
-			conversationId,
-			userId: req.user.id
-		}
-	}).then((userConversationRecord) => {
+	try {
+		const userConversationRecord = await UserConversation.findOne({
+			where: {
+				conversationId,
+				userId: req.user.id
+			}
+		});
+
 		if (!userConversationRecord) {
-			return sendApiError(res, 'Invalid conversation id');
+			throw new Error('Invalid conversation id');
 		}
 
-		return Message.create({
+		const messageRecord = await Message.create({
 			conversationId,
 			content,
 			userId: req.user.id
-		}).then((messageRecord) => {
-			//mark the conversation as unread for all users except the message author
-			return UserConversation.update({
-				unread: true
-			}, {
-				where: {
-					conversationId,
-					userId: {
-						[sequelize.Op.not]: req.user.id
-					}
-				}
-			}).then(() => {
-				return messageRecord;
-			});
 		});
-	}).then((messageRecord) => {
+
+		await UserConversation.update({
+			unread: true
+		}, {
+			where: {
+				conversationId,
+				userId: {
+					[sequelize.Op.not]: req.user.id
+				}
+			}
+		});
+
 		chat.sendMessage(conversationId, messageRecord.toJSON());
-		sendResponse(res, messageRecord);
-	}).catch((err) => {
+		sendResponse(res, messageRecord.toJSON());
+	} catch (err) {
 		sendApiError(res, err);
-	});
+	}
 });
 
 module.exports = router;
