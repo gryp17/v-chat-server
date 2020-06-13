@@ -23,78 +23,38 @@ const rules = {
 	}
 };
 
-router.get('/handshake', (req, res, next) => {
+router.get('/handshake', (req, res) => {
 	sendResponse(res, {
 		success: true
 	});
 });
 
-router.post('/login', validate(rules.login), (req, res, next) => {
+router.post('/login', validate(rules.login), async (req, res) => {
 	const email = req.body.email;
 	const password = req.body.password;
 
-	User.findOne({
-		where: {
-			email
-		}
-	}).then((record) => {
+	try {
+		const record = await User.findOne({
+			where: {
+				email
+			}
+		});
+
 		if (!record) {
 			return sendError(res, {
 				password: errorCodes.WRONG_PASSWORD
 			});
 		}
 
-		compareHash(password, record.password).then((valid) => {
-			if (!valid) {
-				return sendError(res, {
-					password: errorCodes.WRONG_PASSWORD
-				});
-			}
+		const valid = await compareHash(password, record.password);
 
-			const user = record.toJSON();
-			delete user.password;
-
-			const token = jwt.sign(user, auth.secret, {
-				expiresIn: 86400 // expires in 24 hours
+		if (!valid) {
+			return sendError(res, {
+				password: errorCodes.WRONG_PASSWORD
 			});
+		}
 
-			sendResponse(res, {
-				user,
-				token
-			});
-		});
-	}).catch((err) => {
-		sendApiError(res, err);
-	});
-});
-
-router.post('/signup', validate(rules.signup), (req, res, next) => {
-	const email = req.body.email;
-	const displayName = req.body.displayName;
-	const password = req.body.password;
-
-	const chat = app.get('chat');
-
-	makeHash(password).then((hashedPassword) => {
-		return User.create({
-			email,
-			password: hashedPassword,
-			displayName,
-			avatar: uploads.avatars.defaultAvatar
-		});
-	}).then((userInstance) => {
-		const globalConversationId = 1;
-
-		//automatically join the global conversation
-		return Conversation.findByPk(globalConversationId).then((conversationInstance) => {
-			return conversationInstance.addUser(userInstance);
-		}).then(() => {
-			//notify all connected users about the new user
-			chat.newUser(userInstance.id);
-			return userInstance;
-		});
-	}).then((userInstance) => {
-		const user = userInstance.toJSON();
+		const user = record.toJSON();
 		delete user.password;
 
 		const token = jwt.sign(user, auth.secret, {
@@ -105,12 +65,52 @@ router.post('/signup', validate(rules.signup), (req, res, next) => {
 			user,
 			token
 		});
-	}).catch((err) => {
+	} catch (err) {
 		sendApiError(res, err);
-	});
+	}
 });
 
-router.get('/session', isLoggedIn, (req, res, next) => {
+router.post('/signup', validate(rules.signup), async (req, res) => {
+	const email = req.body.email;
+	const displayName = req.body.displayName;
+	const password = req.body.password;
+
+	const chat = app.get('chat');
+
+	try {
+		const hashedPassword = await makeHash(password);
+		const userInstance = await User.create({
+			email,
+			password: hashedPassword,
+			displayName,
+			avatar: uploads.avatars.defaultAvatar
+		});
+
+		//automatically join the global conversation
+		const globalConversationId = 1;
+		const conversationInstance = await Conversation.findByPk(globalConversationId);
+		await conversationInstance.addUser(userInstance);
+
+		const user = userInstance.toJSON();
+		delete user.password;
+
+		const token = jwt.sign(user, auth.secret, {
+			expiresIn: 86400 // expires in 24 hours
+		});
+
+		//notify all connected users about the new user
+		chat.newUser(user.id);
+
+		sendResponse(res, {
+			user,
+			token
+		});
+	} catch (err) {
+		sendApiError(res, err);
+	}
+});
+
+router.get('/session', isLoggedIn, (req, res) => {
 	sendResponse(res, {
 		user: req.user
 	});
