@@ -34,7 +34,7 @@ router.get('/all', isLoggedIn, async (req, res) => {
 				},
 				{
 					model: Message,
-					limit: 5,
+					limit: 10,
 					order: [
 						['createdAt', 'desc']
 					]

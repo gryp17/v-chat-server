@@ -155,7 +155,7 @@ const generateAsyncTasks = (asyncValidations, req) => {
  */
 const validate = (rules) => {
 	return async (req, res, next) => {
-		const data = req.body;
+		const data = Object.keys(req.body).length > 0 ? req.body : req.query;
 		const files = req.files;
 		const asyncRules = ['unique', 'current-password']; //list of async rules
 		const asyncValidations = {};
