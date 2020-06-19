@@ -7,7 +7,9 @@ const db = new Sequelize(config.db.database, config.db.user, config.db.password,
 	dialect: 'mysql',
 	define: {
 		//don't pluralize table names
-		freezeTableName: true
+		freezeTableName: true,
+		//needed for the emojis
+		collate: 'utf8mb4_bin'
 	}
 });
 
@@ -51,6 +53,9 @@ const Message = db.define('message', {
 	content: {
 		type: Sequelize.STRING(1400)
 	}
+}, {
+	charset: 'utf8mb4', //needed for the emojis
+	collate: 'utf8mb4_bin'
 });
 
 User.belongsToMany(Conversation, {
