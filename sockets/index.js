@@ -105,5 +105,9 @@ module.exports = (server) => {
 		}
 	};
 
+	chat.updateUser = (user) => {
+		chat.emit('updateUser', user);
+	};
+
 	return chat;
 };
