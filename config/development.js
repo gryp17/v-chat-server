@@ -18,7 +18,7 @@ module.exports = {
 		},
 		attachments: {
 			directory: '../public/attachments/',
-			maxSize: 2000000
+			maxSize: 20000000
 		}
 	},
 	minPasswordLength: 6,

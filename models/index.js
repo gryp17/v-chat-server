@@ -56,13 +56,25 @@ const Message = db.define('message', {
 	},
 	content: {
 		type: Sequelize.STRING(1400)
-	},
-	file: {
-		type: Sequelize.JSON
 	}
 }, {
 	charset: 'utf8mb4', //needed for the emojis
 	collate: 'utf8mb4_bin'
+});
+
+const File = db.define('file', {
+	type: {
+		type: Sequelize.STRING
+	},
+	name: {
+		type: Sequelize.STRING
+	},
+	originalName: {
+		type: Sequelize.STRING
+	},
+	size: {
+		type: Sequelize.INTEGER
+	}
 });
 
 User.belongsToMany(Conversation, {
@@ -79,6 +91,8 @@ Message.belongsTo(Conversation);
 User.hasMany(Message);
 Message.belongsTo(User);
 
+File.belongsTo(Message);
+Message.hasOne(File);
 
 /**
  * Syncs the models and the mysql tables
@@ -145,6 +159,7 @@ module.exports = {
 	Conversation,
 	UserConversation,
 	Message,
+	File,
 	sync,
 	syncAndSeed
 };

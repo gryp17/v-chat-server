@@ -2,7 +2,7 @@
 const express = require('express');
 const app = require('../app');
 const { isLoggedIn } = require('../middleware/authentication');
-const { Conversation, User, UserConversation, Message } = require('../models');
+const { Conversation, User, UserConversation, Message, File } = require('../models');
 const { sendResponse, sendApiError } = require('../utils');
 
 const router = express.Router();
@@ -37,6 +37,11 @@ router.get('/all', isLoggedIn, async (req, res) => {
 					limit: 10,
 					order: [
 						['createdAt', 'desc']
+					],
+					include: [
+						{
+							model: File
+						}
 					]
 				}
 			]

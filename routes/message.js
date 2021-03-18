@@ -8,7 +8,7 @@ const { promisify } = require('util');
 const app = require('../app');
 const { isLoggedIn } = require('../middleware/authentication');
 const { validate } = require('../middleware/validator');
-const { UserConversation, Message } = require('../models');
+const { UserConversation, Message, File } = require('../models');
 const { sendResponse, sendApiError } = require('../utils');
 const { uploads } = require('../config');
 
@@ -89,7 +89,6 @@ router.get('/', isLoggedIn, validate(rules.getMessages), async (req, res) => {
 		}
 
 		const messages = await Message.findAll({
-			raw: true,
 			where: {
 				conversationId
 			},
@@ -97,6 +96,11 @@ router.get('/', isLoggedIn, validate(rules.getMessages), async (req, res) => {
 			offset: parseInt(offset),
 			order: [
 				['createdAt', 'desc']
+			],
+			include: [
+				{
+					model: File
+				}
 			]
 		});
 
@@ -135,6 +139,8 @@ router.post('/file', isLoggedIn, multipart(), validate(rules.addFileMessage), as
 				originalName: file.originalFilename,
 				size: file.size
 			}
+		}, {
+			include: File
 		});
 
 		await UserConversation.update({
