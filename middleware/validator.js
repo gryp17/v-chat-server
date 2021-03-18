@@ -244,6 +244,18 @@ const validate = (rules) => {
 					}
 				}
 
+				//"valid-attachment" rule
+				if (rule === 'valid-attachment') {
+					const file = files[field];
+					const maxSize = uploads.attachments.maxSize;
+
+					//max file size
+					if (file.size > maxSize) {
+						errors[field] = errorCodes.EXCEEDS_MAX_FILE_SIZE_ + maxSize;
+						continue fieldLoop;
+					}
+				}
+
 				//min-\d+ rule
 				//examples: min-5, min-10, min-50
 				const minMatches = rule.match(/min-(\d+)/);

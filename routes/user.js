@@ -114,7 +114,8 @@ router.put('/', isLoggedIn, multipart(), validate(rules.updateUser), async (req,
  * Uploads the submited avatar to the avatars directory
  */
 async function uploadAvatar(userId, file) {
-	const extension = path.extname(file.originalFilename).replace('.', '').toLowerCase();
+	let extension = path.extname(file.originalFilename).replace('.', '').toLowerCase();
+	extension = extension ? `.${extension}` : '';
 
 	const user = await User.findByPk(userId);
 
@@ -126,7 +127,7 @@ async function uploadAvatar(userId, file) {
 
 	//rename/move the avatar file
 	const username = user.displayName;
-	const avatar = `${md5(username) + new Date().getTime()}.${extension}`;
+	const avatar = `${md5(username) + new Date().getTime()}${extension}`;
 	const destination = path.join(__dirname, uploads.avatars.directory, avatar);
 
 	//move the temporal file to the real avatars directory

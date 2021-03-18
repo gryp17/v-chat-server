@@ -15,6 +15,10 @@ module.exports = {
 			maxSize: 1000000,
 			validExtensions: ['png', 'jpg', 'jpeg'],
 			defaultAvatar: 'default.png'
+		},
+		attachments: {
+			directory: '../public/attachments/',
+			maxSize: 2000000
 		}
 	},
 	minPasswordLength: 6,

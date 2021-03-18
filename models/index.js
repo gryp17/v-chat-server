@@ -50,8 +50,15 @@ const UserConversation = db.define('user_conversation', {
 });
 
 const Message = db.define('message', {
+	type: {
+		type: Sequelize.STRING, //text | file
+		defaultValue: 'text'
+	},
 	content: {
 		type: Sequelize.STRING(1400)
+	},
+	file: {
+		type: Sequelize.JSON
 	}
 }, {
 	charset: 'utf8mb4', //needed for the emojis
@@ -122,6 +129,7 @@ const syncAndSeed = async () => {
 		//send a message from each user
 		await Promise.all(userInstances.map((userInstance) => {
 			return Message.create({
+				type: 'text',
 				content: `I am ${userInstance.displayName}`,
 				userId: userInstance.id,
 				conversationId: conversationInstance.id
