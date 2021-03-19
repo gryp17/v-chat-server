@@ -29,7 +29,7 @@ const User = db.define('user', {
 	avatar: {
 		type: Sequelize.STRING
 	},
-	avatarPath: {
+	avatarLink: {
 		type: Sequelize.VIRTUAL,
 		get() {
 			return `${config.cdn}/avatars/${this.avatar}`;

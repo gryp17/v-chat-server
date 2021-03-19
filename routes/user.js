@@ -36,7 +36,7 @@ router.get('/all', isLoggedIn, async (req, res) => {
 				'displayName',
 				'bio',
 				'avatar',
-				'avatarPath',
+				'avatarLink',
 				'createdAt',
 				'updatedAt'
 			]
@@ -97,7 +97,7 @@ router.put('/', isLoggedIn, multipart(), validate(rules.updateUser), async (req,
 				'displayName',
 				'bio',
 				'avatar',
-				'avatarPath',
+				'avatarLink',
 				'createdAt',
 				'updatedAt'
 			]
