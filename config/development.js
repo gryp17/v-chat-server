@@ -1,5 +1,6 @@
 module.exports = {
 	port: 3333,
+	cdn: 'http://127.0.0.1:3333',
 	auth: {
 		secret: 'EXxCP8sDAfPM7vJ4z6MQeN6oJzSBSh9NKGuSiNCs32qjngaRPC0IgiABV7MpCYu'
 	},
