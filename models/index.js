@@ -80,6 +80,12 @@ const File = db.define('file', {
 	},
 	size: {
 		type: Sequelize.INTEGER
+	},
+	link: {
+		type: Sequelize.VIRTUAL,
+		get() {
+			return `${config.cdn}/attachments/${this.name}`;
+		}
 	}
 });
 
