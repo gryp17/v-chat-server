@@ -2,6 +2,7 @@
 const sequelize = require('sequelize');
 const express = require('express');
 const multipart = require('connect-multiparty');
+const escapeHtml = require('escape-html');
 const path = require('path');
 const fs = require('fs');
 const { promisify } = require('util');
@@ -51,7 +52,7 @@ router.post('/', isLoggedIn, validate(rules.addMessage), async (req, res) => {
 		const messageRecord = await Message.create({
 			type: 'text',
 			conversationId,
-			content,
+			content: escapeHtml(content),
 			userId: req.user.id
 		});
 
