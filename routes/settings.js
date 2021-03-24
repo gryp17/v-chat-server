@@ -1,20 +1,47 @@
 
 const express = require('express');
 const { isLoggedIn } = require('../middleware/authentication');
+const { validate } = require('../middleware/validator');
 const { Settings } = require('../models');
 const { sendResponse, sendApiError } = require('../utils');
 
 const router = express.Router();
 
+const rules = {
+	updateSettings: {
+		showMessageNotifications: ['required', 'boolean'],
+		showOnlineStatusNotifications: ['required', 'boolean']
+	}
+};
+
 router.get('/', isLoggedIn, async (req, res) => {
 	try {
-		const settings = await Settings.findOne({
+		const settingsRecord = await Settings.findOne({
 			where: {
 				userId: req.user.id
 			}
 		});
 
-		sendResponse(res, settings.toJSON());
+		sendResponse(res, settingsRecord.toJSON());
+	} catch (err) {
+		sendApiError(res, err);
+	}
+});
+
+router.put('/', isLoggedIn, validate(rules.updateSettings), async (req, res) => {
+	try {
+		const settingsRecord = await Settings.findOne({
+			where: {
+				userId: req.user.id
+			}
+		});
+
+		await settingsRecord.update({
+			showMessageNotifications: req.body.showMessageNotifications,
+			showOnlineStatusNotifications: req.body.showOnlineStatusNotifications
+		});
+
+		sendResponse(res, settingsRecord.toJSON());
 	} catch (err) {
 		sendApiError(res, err);
 	}
