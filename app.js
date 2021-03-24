@@ -26,6 +26,7 @@ app.use('/auth', require('./routes/auth'));
 app.use('/conversation', require('./routes/conversation'));
 app.use('/user', require('./routes/user'));
 app.use('/message', require('./routes/message'));
+app.use('/settings', require('./routes/settings'));
 
 //catch 404 and forward to error handler
 app.use((req, res, next) => {

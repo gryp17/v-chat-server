@@ -89,6 +89,17 @@ const File = db.define('file', {
 	}
 });
 
+const Settings = db.define('settings', {
+	showMessageNotifications: {
+		type: Sequelize.BOOLEAN,
+		defaultValue: true
+	},
+	showOnlineStatusNotifications: {
+		type: Sequelize.BOOLEAN,
+		defaultValue: true
+	}
+});
+
 User.belongsToMany(Conversation, {
 	through: UserConversation
 });
@@ -105,6 +116,9 @@ Message.belongsTo(User);
 
 File.belongsTo(Message);
 Message.hasOne(File);
+
+Settings.belongsTo(User);
+User.hasOne(Settings);
 
 /**
  * Syncs the models and the mysql tables
@@ -152,8 +166,13 @@ const syncAndSeed = async () => {
 			});
 		}));
 
-		//send a message from each user
-		await Promise.all(userInstances.map((userInstance) => {
+		await Promise.all(userInstances.map(async (userInstance) => {
+			//add the settings record for each user
+			await Settings.create({
+				userId: userInstance.id
+			});
+
+			//send a message from each user
 			return Message.create({
 				type: 'text',
 				content: `I am ${userInstance.displayName}`,
@@ -172,6 +191,7 @@ module.exports = {
 	UserConversation,
 	Message,
 	File,
+	Settings,
 	sync,
 	syncAndSeed
 };

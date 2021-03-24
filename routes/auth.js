@@ -2,7 +2,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { auth, uploads, errorCodes } = require('../config');
-const { User, Conversation } = require('../models');
+const { User, Conversation, Settings } = require('../models');
 const app = require('../app');
 const { isLoggedIn } = require('../middleware/authentication');
 const { validate } = require('../middleware/validator');
@@ -84,6 +84,11 @@ router.post('/signup', validate(rules.signup), async (req, res) => {
 			password: hashedPassword,
 			displayName,
 			avatar: uploads.avatars.defaultAvatar
+		});
+
+		//create the settings record
+		await Settings.create({
+			userId: userInstance.id
 		});
 
 		//automatically join the global conversation
