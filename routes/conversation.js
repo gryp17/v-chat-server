@@ -4,6 +4,7 @@ const app = require('../app');
 const { isLoggedIn } = require('../middleware/authentication');
 const { Conversation, User, UserConversation, Message, File } = require('../models');
 const { sendResponse, sendApiError } = require('../utils');
+const { errorCodes } = require('../config');
 
 const router = express.Router();
 
@@ -77,7 +78,7 @@ router.post('/markAsRead', isLoggedIn, async (req, res) => {
 		});
 
 		if (!record) {
-			throw new Error('Invalid conversation id');
+			throw new Error(errorCodes.INVALID_CONVERSATION_ID);
 		}
 
 		const updated = await record.update({
@@ -101,13 +102,13 @@ router.post('/', isLoggedIn, async (req, res) => {
 		const userInstance = await User.findByPk(userId);
 
 		if (!userInstance) {
-			throw new Error('Invalid user id');
+			throw new Error(errorCodes.INVALID_USER_ID);
 		}
 
 		const exists = await conversationExists(req.user.id, userId);
 
 		if (exists) {
-			throw new Error('Duplicate conversation');
+			throw new Error(errorCodes.DUPLICATE_CONVERSATION);
 		}
 
 		const conversationInstance = await Conversation.create({

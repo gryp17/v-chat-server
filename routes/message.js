@@ -11,7 +11,7 @@ const { isLoggedIn } = require('../middleware/authentication');
 const { validate } = require('../middleware/validator');
 const { UserConversation, Message, File } = require('../models');
 const { sendResponse, sendApiError } = require('../utils');
-const { uploads } = require('../config');
+const { uploads, errorCodes } = require('../config');
 
 const rename = promisify(fs.rename);
 
@@ -46,7 +46,7 @@ router.post('/', isLoggedIn, validate(rules.addMessage), async (req, res) => {
 		});
 
 		if (!userConversationRecord) {
-			throw new Error('Invalid conversation id');
+			throw new Error(errorCodes.INVALID_CONVERSATION_ID);
 		}
 
 		const messageRecord = await Message.create({
@@ -86,7 +86,7 @@ router.get('/', isLoggedIn, validate(rules.getMessages), async (req, res) => {
 		});
 
 		if (!userConversationRecord) {
-			throw new Error('Invalid conversation id');
+			throw new Error(errorCodes.INVALID_CONVERSATION_ID);
 		}
 
 		const messages = await Message.findAll({
@@ -125,7 +125,7 @@ router.post('/file', isLoggedIn, multipart(), validate(rules.addFileMessage), as
 		});
 
 		if (!userConversationRecord) {
-			throw new Error('Invalid conversation id');
+			throw new Error(errorCodes.INVALID_CONVERSATION_ID);
 		}
 
 		const attachment = await uploadAttachment(req.user.id, file);

@@ -14,7 +14,7 @@ module.exports = {
 	},
 	sendApiError(res, payload) {
 		res.json({
-			apiError: payload.toString ? payload.toString() : payload
+			apiError: payload.message ? payload.message : payload
 		});
 	},
 	sendSocketError(io, payload) {

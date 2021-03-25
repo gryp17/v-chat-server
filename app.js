@@ -37,5 +37,5 @@ app.use((req, res, next) => {
 
 //error handler
 app.use((err, req, res, next) => {
-	sendApiError(res, err.message);
+	sendApiError(res, err);
 });

@@ -20,7 +20,7 @@ module.exports = {
 		const user = verifyToken(token);
 
 		if (!user) {
-			return sendApiError(res, 'Invalid authentication token');
+			return sendApiError(res, config.errorCodes.INVALID_AUTHENTICATION_TOKEN);
 		}
 
 		req.user = user;
@@ -31,7 +31,7 @@ module.exports = {
 		const user = verifyToken(token);
 
 		if (!user) {
-			return next('Invalid authentication token');
+			return next(new Error(config.errorCodes.INVALID_AUTHENTICATION_TOKEN));
 		}
 
 		socket.user = user;

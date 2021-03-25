@@ -36,6 +36,11 @@ module.exports = {
 		FIELDS_DONT_MATCH: 'fields_dont_match',
 		NOT_IN_LIST_: 'not_in_list_', //not_in_list_[]
 		ALREADY_IN_USE: 'already_in_use',
-		WRONG_PASSWORD: 'wrong_password'
+		WRONG_PASSWORD: 'wrong_password',
+		// api error codes
+		INVALID_AUTHENTICATION_TOKEN: 'invalid_authentication_token',
+		INVALID_CONVERSATION_ID: 'invalid_conversation_id',
+		INVALID_USER_ID: 'invalid_user_id',
+		DUPLICATE_CONVERSATION: 'duplicate_conversation'
 	}
 };
