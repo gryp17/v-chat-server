@@ -41,7 +41,7 @@ router.post('/', isLoggedIn, validate(rules.addMessage), async (req, res) => {
 		const userConversationRecord = await UserConversation.findOne({
 			where: {
 				conversationId,
-				userId: req.user.id
+				userId: req.session.user.id
 			}
 		});
 
@@ -53,7 +53,7 @@ router.post('/', isLoggedIn, validate(rules.addMessage), async (req, res) => {
 			type: 'text',
 			conversationId,
 			content: escapeHtml(content),
-			userId: req.user.id
+			userId: req.session.user.id
 		});
 
 		await UserConversation.update({
@@ -62,7 +62,7 @@ router.post('/', isLoggedIn, validate(rules.addMessage), async (req, res) => {
 			where: {
 				conversationId,
 				userId: {
-					[sequelize.Op.not]: req.user.id
+					[sequelize.Op.not]: req.session.user.id
 				}
 			}
 		});
@@ -81,7 +81,7 @@ router.get('/', isLoggedIn, validate(rules.getMessages), async (req, res) => {
 		const userConversationRecord = await UserConversation.findOne({
 			where: {
 				conversationId,
-				userId: req.user.id
+				userId: req.session.user.id
 			}
 		});
 
@@ -120,7 +120,7 @@ router.post('/file', isLoggedIn, multipart(), validate(rules.addFileMessage), as
 		const userConversationRecord = await UserConversation.findOne({
 			where: {
 				conversationId,
-				userId: req.user.id
+				userId: req.session.user.id
 			}
 		});
 
@@ -128,12 +128,12 @@ router.post('/file', isLoggedIn, multipart(), validate(rules.addFileMessage), as
 			throw new Error(errorCodes.INVALID_CONVERSATION_ID);
 		}
 
-		const attachment = await uploadAttachment(req.user.id, file);
+		const attachment = await uploadAttachment(req.session.user.id, file);
 
 		const messageRecord = await Message.create({
 			type: 'file',
 			conversationId: parseInt(conversationId),
-			userId: req.user.id,
+			userId: req.session.user.id,
 			file: {
 				type: file.type,
 				name: attachment,
@@ -150,7 +150,7 @@ router.post('/file', isLoggedIn, multipart(), validate(rules.addFileMessage), as
 			where: {
 				conversationId,
 				userId: {
-					[sequelize.Op.not]: req.user.id
+					[sequelize.Op.not]: req.session.user.id
 				}
 			}
 		});

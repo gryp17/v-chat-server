@@ -18,7 +18,7 @@ router.get('/', isLoggedIn, async (req, res) => {
 	try {
 		const settingsRecord = await Settings.findOne({
 			where: {
-				userId: req.user.id
+				userId: req.session.user.id
 			}
 		});
 
@@ -32,7 +32,7 @@ router.put('/', isLoggedIn, validate(rules.updateSettings), async (req, res) => 
 	try {
 		const settingsRecord = await Settings.findOne({
 			where: {
-				userId: req.user.id
+				userId: req.session.user.id
 			}
 		});
 

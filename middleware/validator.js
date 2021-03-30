@@ -130,7 +130,7 @@ const generateAsyncTasks = (asyncValidations, req) => {
 			if (validation.rule === 'current-password') {
 				asyncTasks.push(
 					(async () => {
-						const user = await User.findByPk(req.user.id);
+						const user = await User.findByPk(req.session.user.id);
 						const valid = await compareHash(validation.fieldValue, user.password);
 
 						if (!valid) {

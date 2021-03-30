@@ -63,7 +63,7 @@ router.put('/', isLoggedIn, multipart(), validate(rules.updateUser), async (req,
 			where: {
 				displayName,
 				id: {
-					[sequelize.Op.not]: req.user.id
+					[sequelize.Op.not]: req.session.user.id
 				}
 			}
 		});
@@ -80,18 +80,18 @@ router.put('/', isLoggedIn, multipart(), validate(rules.updateUser), async (req,
 		}
 
 		if (req.files && req.files.avatar) {
-			const avatar = await uploadAvatar(req.user.id, req.files.avatar);
+			const avatar = await uploadAvatar(req.session.user.id, req.files.avatar);
 			updatedFields.avatar = avatar;
 		}
 
 		//update the user data
 		await User.update(updatedFields, {
 			where: {
-				id: req.user.id
+				id: req.session.user.id
 			}
 		});
 
-		const updatedUser = await User.findByPk(req.user.id, {
+		const updatedUser = await User.findByPk(req.session.user.id, {
 			attributes: [
 				'id',
 				'displayName',

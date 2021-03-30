@@ -15,7 +15,7 @@ router.get('/all', isLoggedIn, async (req, res) => {
 		const conversationIds = await UserConversation.findAll({
 			raw: true,
 			where: {
-				userId: req.user.id
+				userId: req.session.user.id
 			}
 		}).map((userConversation) => {
 			unreadState[userConversation.conversationId] = Boolean(userConversation.unread);
@@ -73,7 +73,7 @@ router.post('/markAsRead', isLoggedIn, async (req, res) => {
 		const record = await UserConversation.findOne({
 			where: {
 				conversationId,
-				userId: req.user.id
+				userId: req.session.user.id
 			}
 		});
 
@@ -96,7 +96,7 @@ router.post('/', isLoggedIn, async (req, res) => {
 	const chat = app.get('chat');
 
 	const { userId } = req.body;
-	const conversationUsers = [req.user.id, userId];
+	const conversationUsers = [req.session.user.id, userId];
 
 	try {
 		const userInstance = await User.findByPk(userId);
@@ -105,7 +105,7 @@ router.post('/', isLoggedIn, async (req, res) => {
 			throw new Error(errorCodes.INVALID_USER_ID);
 		}
 
-		const exists = await conversationExists(req.user.id, userId);
+		const exists = await conversationExists(req.session.user.id, userId);
 
 		if (exists) {
 			throw new Error(errorCodes.DUPLICATE_CONVERSATION);
@@ -113,7 +113,7 @@ router.post('/', isLoggedIn, async (req, res) => {
 
 		const conversationInstance = await Conversation.create({
 			isPrivate: true,
-			createdBy: req.user.id
+			createdBy: req.session.user.id
 		});
 
 		//add both users to the conversation

@@ -1,7 +1,6 @@
 
 const express = require('express');
-const jwt = require('jsonwebtoken');
-const { auth, uploads, errorCodes } = require('../config');
+const { uploads, errorCodes } = require('../config');
 const { User, Conversation, Settings } = require('../models');
 const app = require('../app');
 const { isLoggedIn } = require('../middleware/authentication');
@@ -57,13 +56,10 @@ router.post('/login', validate(rules.login), async (req, res) => {
 		const user = record.toJSON();
 		delete user.password;
 
-		const token = jwt.sign(user, auth.secret, {
-			expiresIn: 86400 // expires in 24 hours
-		});
+		req.session.user = user;
 
 		sendResponse(res, {
-			user,
-			token
+			user
 		});
 	} catch (err) {
 		sendApiError(res, err);
@@ -99,16 +95,13 @@ router.post('/signup', validate(rules.signup), async (req, res) => {
 		const user = userInstance.toJSON();
 		delete user.password;
 
-		const token = jwt.sign(user, auth.secret, {
-			expiresIn: 86400 // expires in 24 hours
-		});
+		req.session.user = user;
 
 		//notify all connected users about the new user
 		chat.newUser(user.id);
 
 		sendResponse(res, {
-			user,
-			token
+			user
 		});
 	} catch (err) {
 		sendApiError(res, err);
@@ -117,7 +110,13 @@ router.post('/signup', validate(rules.signup), async (req, res) => {
 
 router.get('/session', isLoggedIn, (req, res) => {
 	sendResponse(res, {
-		user: req.user
+		user: req.session.user
+	});
+});
+
+router.get('/logout', (req, res) => {
+	req.session.destroy(() => {
+		sendResponse(res, true);
 	});
 });
 
