@@ -12,6 +12,9 @@ const router = express.Router();
 const rules = {
 	createConversation: {
 		userId: ['required', 'integer']
+	},
+	muted: {
+		status: ['required', 'boolean']
 	}
 };
 
@@ -87,6 +90,32 @@ router.post('/:id/read', isLoggedIn, async (req, res) => {
 
 		const updated = await record.update({
 			unread: false
+		});
+
+		sendResponse(res, updated.toJSON());
+	} catch (err) {
+		sendApiError(res, err);
+	}
+});
+
+router.post('/:id/muted', isLoggedIn, validate(rules.muted), async (req, res) => {
+	const conversationId = req.params.id;
+	const { status } = req.body;
+
+	try {
+		const record = await UserConversation.findOne({
+			where: {
+				conversationId,
+				userId: req.session.user.id
+			}
+		});
+
+		if (!record) {
+			throw new Error(errorCodes.INVALID_CONVERSATION_ID);
+		}
+
+		const updated = await record.update({
+			muted: status
 		});
 
 		sendResponse(res, updated.toJSON());
