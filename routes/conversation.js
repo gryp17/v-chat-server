@@ -2,51 +2,51 @@
 const express = require('express');
 const app = require('../app');
 const { isLoggedIn } = require('../middleware/authentication');
+const { validate } = require('../middleware/validator');
 const { Conversation, User, UserConversation, Message, File } = require('../models');
 const { sendResponse, sendApiError } = require('../utils');
 const { errorCodes } = require('../config');
 
 const router = express.Router();
 
+const rules = {
+	createConversation: {
+		userId: ['required', 'integer']
+	}
+};
+
 router.get('/all', isLoggedIn, async (req, res) => {
-	const unreadState = {};
-
 	try {
-		const conversationIds = await UserConversation.findAll({
-			raw: true,
-			where: {
-				userId: req.session.user.id
-			}
-		}).map((userConversation) => {
-			unreadState[userConversation.conversationId] = Boolean(userConversation.unread);
-			return userConversation.conversationId;
-		});
-
-		const conversations = await Conversation.findAll({
-			where: {
-				id: conversationIds
-			},
+		// fetch the user conversations with all the necessary associations
+		const userRecord = await User.findByPk(req.session.user.id, {
 			include: [
 				{
-					model: User,
-					attributes: [
-						'id'
-					]
-				},
-				{
-					model: Message,
-					limit: 10,
-					order: [
-						['createdAt', 'desc']
-					],
+					model: Conversation,
 					include: [
 						{
-							model: File
+							model: User,
+							attributes: [
+								'id'
+							]
+						},
+						{
+							model: Message,
+							limit: 10,
+							order: [
+								['createdAt', 'desc']
+							],
+							include: [
+								{
+									model: File
+								}
+							]
 						}
 					]
 				}
 			]
-		}).map((conversation) => {
+		});
+
+		const conversations = userRecord.conversations.map((conversation) => {
 			//flatten the users array
 			const item = conversation.toJSON();
 
@@ -54,8 +54,12 @@ router.get('/all', isLoggedIn, async (req, res) => {
 				return user.id;
 			});
 
-			//set the unread property
-			item.unread = unreadState[item.id];
+			//set the unread and muted properties
+			item.unread = item.user_conversation.unread;
+			item.muted = item.user_conversation.muted;
+
+			//remove the unnecesary data
+			delete item.user_conversation;
 
 			return item;
 		});
@@ -66,8 +70,8 @@ router.get('/all', isLoggedIn, async (req, res) => {
 	}
 });
 
-router.post('/markAsRead', isLoggedIn, async (req, res) => {
-	const { conversationId } = req.body;
+router.post('/:id/read', isLoggedIn, async (req, res) => {
+	const conversationId = req.params.id;
 
 	try {
 		const record = await UserConversation.findOne({
@@ -92,7 +96,7 @@ router.post('/markAsRead', isLoggedIn, async (req, res) => {
 });
 
 //create conversation
-router.post('/', isLoggedIn, async (req, res) => {
+router.post('/', isLoggedIn, validate(rules.createConversation), async (req, res) => {
 	const chat = app.get('chat');
 
 	const { userId } = req.body;
