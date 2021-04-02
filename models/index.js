@@ -13,97 +13,14 @@ const db = new Sequelize(config.db.database, config.db.user, config.db.password,
 	}
 });
 
-const User = db.define('user', {
-	email: {
-		type: Sequelize.STRING
-	},
-	password: {
-		type: Sequelize.STRING
-	},
-	displayName: {
-		type: Sequelize.STRING
-	},
-	bio: {
-		type: Sequelize.STRING
-	},
-	avatar: {
-		type: Sequelize.STRING
-	},
-	avatarLink: {
-		type: Sequelize.VIRTUAL,
-		get() {
-			return `${config.cdn}/avatars/${this.avatar}`;
-		}
-	}
-});
+const User = require('./user')(db);
+const Conversation = require('./conversation')(db);
+const UserConversation = require('./user-conversation')(db);
+const Message = require('./message')(db);
+const File = require('./file')(db);
+const Settings = require('./settings')(db);
 
-const Conversation = db.define('conversation', {
-	name: {
-		type: Sequelize.STRING
-	},
-	isPrivate: {
-		type: Sequelize.BOOLEAN,
-		defaultValue: false
-	},
-	createdBy: Sequelize.INTEGER
-});
-
-const UserConversation = db.define('user_conversation', {
-	unread: {
-		type: Sequelize.BOOLEAN,
-		defaultValue: false
-	},
-	muted: {
-		type: Sequelize.BOOLEAN,
-		defaultValue: false
-	}
-});
-
-const Message = db.define('message', {
-	type: {
-		type: Sequelize.STRING, //text | file
-		defaultValue: 'text'
-	},
-	content: {
-		type: Sequelize.STRING(1400)
-	}
-}, {
-	charset: 'utf8mb4', //needed for the emojis
-	collate: 'utf8mb4_bin'
-});
-
-const File = db.define('file', {
-	type: {
-		type: Sequelize.STRING
-	},
-	name: {
-		type: Sequelize.STRING
-	},
-	originalName: {
-		type: Sequelize.STRING
-	},
-	size: {
-		type: Sequelize.INTEGER
-	},
-	link: {
-		type: Sequelize.VIRTUAL,
-		get() {
-			return `${config.cdn}/attachments/${this.name}`;
-		}
-	}
-});
-
-const Settings = db.define('settings', {
-	showMessageNotifications: {
-		type: Sequelize.BOOLEAN,
-		defaultValue: true
-	},
-	showOnlineStatusNotifications: {
-		type: Sequelize.BOOLEAN,
-		defaultValue: true
-	}
-});
-
+//setup relations
 User.belongsToMany(Conversation, {
 	through: UserConversation
 });
