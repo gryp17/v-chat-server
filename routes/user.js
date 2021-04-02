@@ -103,6 +103,9 @@ router.put('/', isLoggedIn, multipart(), validate(rules.updateUser), async (req,
 			]
 		});
 
+		//update the session
+		req.session.user = updatedUser.toJSON();
+
 		//notify all users about the changes
 		chat.updateUser(updatedUser.toJSON());
 
