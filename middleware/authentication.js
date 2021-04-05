@@ -53,6 +53,10 @@ module.exports = {
 				return next(err);
 			}
 
+			if (!session || !session.user) {
+				return next(new Error(config.errorCodes.INVALID_AUTHENTICATION_TOKEN));
+			}
+
 			socket.user = session.user;
 			next();
 		});
