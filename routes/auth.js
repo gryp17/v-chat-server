@@ -22,12 +22,18 @@ const rules = {
 	}
 };
 
+/**
+ * "Ping" endpoint that is used to check if the server is responding
+ */
 router.get('/handshake', (req, res) => {
 	sendResponse(res, {
 		success: true
 	});
 });
 
+/**
+ * Logs in the user with the provided credentials
+ */
 router.post('/login', validate(rules.login), async (req, res) => {
 	const email = req.body.email;
 	const password = req.body.password;
@@ -66,6 +72,9 @@ router.post('/login', validate(rules.login), async (req, res) => {
 	}
 });
 
+/**
+ * Signs up the user with the provided data
+ */
 router.post('/signup', validate(rules.signup), async (req, res) => {
 	const email = req.body.email;
 	const displayName = req.body.displayName;
@@ -108,12 +117,18 @@ router.post('/signup', validate(rules.signup), async (req, res) => {
 	}
 });
 
+/**
+ * Returns the current user session
+ */
 router.get('/session', isLoggedIn, (req, res) => {
 	sendResponse(res, {
 		user: req.session.user
 	});
 });
 
+/**
+ * Logs out the user
+ */
 router.get('/logout', (req, res) => {
 	req.session.destroy(() => {
 		sendResponse(res, true);

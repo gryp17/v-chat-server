@@ -20,6 +20,10 @@ module.exports = (server) => {
 		});
 	});
 
+	/**
+	 * Notifies all clients about the new user
+	 * @param {Number} userId
+	 */
 	chat.newUser = async (userId) => {
 		try {
 			const user = await User.findByPk(userId, {
@@ -47,6 +51,11 @@ module.exports = (server) => {
 		}
 	};
 
+	/**
+	 * Notifies the provided users about the new conversation
+	 * @param {Object} conversation
+	 * @param {Array} userIds
+	 */
 	chat.newConversation = (conversation, userIds) => {
 		const connectedUsers = chat.getConnectedUsers();
 
@@ -74,6 +83,9 @@ module.exports = (server) => {
 		return users;
 	};
 
+	/**
+	 * Emits the list of online users
+	 */
 	chat.updateOnlineUsers = () => {
 		const ids = chat.getConnectedUsers().map((user) => {
 			return user.id;
@@ -82,6 +94,11 @@ module.exports = (server) => {
 		chat.emit('updateOnlineUsers', ids);
 	};
 
+	/**
+	 * Sends a new message to all users in the conversation
+	 * @param {Number} conversationId
+	 * @param {Object} message
+	 */
 	chat.sendMessage = async (conversationId, message) => {
 		try {
 			const userIds = await UserConversation.findAll({
@@ -105,6 +122,10 @@ module.exports = (server) => {
 		}
 	};
 
+	/**
+	 * Updates the user data
+	 * @param {Object} user
+	 */
 	chat.updateUser = (user) => {
 		chat.emit('updateUser', user);
 	};

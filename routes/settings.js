@@ -14,6 +14,9 @@ const rules = {
 	}
 };
 
+/**
+ * Returns the current user settings
+ */
 router.get('/', isLoggedIn, async (req, res) => {
 	try {
 		const settingsRecord = await Settings.findOne({
@@ -28,6 +31,9 @@ router.get('/', isLoggedIn, async (req, res) => {
 	}
 });
 
+/**
+ * Updates the user settings
+ */
 router.put('/', isLoggedIn, validate(rules.updateSettings), async (req, res) => {
 	try {
 		const settingsRecord = await Settings.findOne({

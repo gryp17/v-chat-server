@@ -18,6 +18,9 @@ const rules = {
 	}
 };
 
+/**
+ * Returns all the conversations that the user is a part of
+ */
 router.get('/all', isLoggedIn, async (req, res) => {
 	try {
 		// fetch the user conversations with all the necessary associations
@@ -73,6 +76,9 @@ router.get('/all', isLoggedIn, async (req, res) => {
 	}
 });
 
+/**
+ * Marks the conversation as read
+ */
 router.post('/:id/read', isLoggedIn, async (req, res) => {
 	const conversationId = req.params.id;
 
@@ -98,6 +104,9 @@ router.post('/:id/read', isLoggedIn, async (req, res) => {
 	}
 });
 
+/**
+ * Mutes/Unmutes the conversation
+ */
 router.post('/:id/muted', isLoggedIn, validate(rules.muted), async (req, res) => {
 	const conversationId = req.params.id;
 	const { status } = req.body;
@@ -124,7 +133,9 @@ router.post('/:id/muted', isLoggedIn, validate(rules.muted), async (req, res) =>
 	}
 });
 
-//create conversation
+/**
+ * Creates a new conversation
+ */
 router.post('/', isLoggedIn, validate(rules.createConversation), async (req, res) => {
 	const chat = app.get('chat');
 
@@ -174,6 +185,12 @@ router.post('/', isLoggedIn, validate(rules.createConversation), async (req, res
 	}
 });
 
+/**
+ * Checks if a PRIVATE conversation exists between the provided 2 users
+ * @param {Number} currentUserId
+ * @param {Number} userId
+ * @returns {Boolean}
+ */
 async function conversationExists(currentUserId, userId) {
 	const userInstance = await User.findByPk(currentUserId, {
 		include: [

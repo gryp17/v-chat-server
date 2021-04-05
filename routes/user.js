@@ -28,6 +28,9 @@ const rules = {
 	}
 };
 
+/**
+ * Returns all users
+ */
 router.get('/all', isLoggedIn, async (req, res) => {
 	try {
 		const users = await User.findAll({
@@ -48,6 +51,9 @@ router.get('/all', isLoggedIn, async (req, res) => {
 	}
 });
 
+/**
+ * Updates the user data
+ */
 router.put('/', isLoggedIn, multipart(), validate(rules.updateUser), async (req, res) => {
 	const chat = app.get('chat');
 	const { displayName, password, bio } = req.body;
@@ -117,6 +123,9 @@ router.put('/', isLoggedIn, multipart(), validate(rules.updateUser), async (req,
 
 /**
  * Uploads the submited avatar to the avatars directory
+ * @param {Number} userId
+ * @param {Object} file
+ * @returns {String}
  */
 async function uploadAvatar(userId, file) {
 	let extension = path.extname(file.originalFilename).replace('.', '').toLowerCase();

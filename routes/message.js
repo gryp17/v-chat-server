@@ -33,6 +33,9 @@ const rules = {
 	}
 };
 
+/**
+ * Inserts a new message
+ */
 router.post('/', isLoggedIn, validate(rules.addMessage), async (req, res) => {
 	const chat = app.get('chat');
 	const { conversationId, content } = req.body;
@@ -74,6 +77,9 @@ router.post('/', isLoggedIn, validate(rules.addMessage), async (req, res) => {
 	}
 });
 
+/**
+ * Returns messages from the provided conversation id
+ */
 router.get('/', isLoggedIn, validate(rules.getMessages), async (req, res) => {
 	const { conversationId, limit, offset } = req.query;
 
@@ -111,6 +117,9 @@ router.get('/', isLoggedIn, validate(rules.getMessages), async (req, res) => {
 	}
 });
 
+/**
+ * Inserts a new file message
+ */
 router.post('/file', isLoggedIn, multipart(), validate(rules.addFileMessage), async (req, res) => {
 	const chat = app.get('chat');
 	const { conversationId } = req.body;
@@ -164,6 +173,9 @@ router.post('/file', isLoggedIn, multipart(), validate(rules.addFileMessage), as
 
 /**
  * Uploads the submited file to the attachments directory
+ * @param {Number} userId
+ * @param {Object} file
+ * @returns {String}
  */
 async function uploadAttachment(userId, file) {
 	let extension = path.extname(file.originalFilename).replace('.', '').toLowerCase();
