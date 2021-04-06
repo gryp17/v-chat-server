@@ -10,10 +10,15 @@ The development configuration file is located in
 It contains the database configuration and other application parameters.
 
 ## Project setup
-Configure the database and then run the following commands
+Configure the database and then run the following commands:
 
+Install the dependencies
 ```
 npm install
+```
+
+Create the database tables
+```
 npm run sync-models
 ```
 
