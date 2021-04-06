@@ -1,5 +1,6 @@
 # v-chat-server
 A self hosted NodeJS chat server that is compatible with the [v-chat-client](https://github.com/gryp17/v-chat-client) desktop application.
+
 It uses a MySQL database and Socket.io for the realtime communication with the clients.
 
 ## Configuration
