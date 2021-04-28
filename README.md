@@ -17,9 +17,14 @@ Install the dependencies
 npm install
 ```
 
-Create the database tables
+Create the database tables in production mode
 ```
 npm run sync-models
+```
+
+Create the database tables and inserts seed data in development mode
+```
+npm run sync-models-dev
 ```
 
 ### Runs the project in development mode
