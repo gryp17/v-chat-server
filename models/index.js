@@ -77,30 +77,33 @@ const syncAndSeed = async () => {
 			name: 'Global'
 		});
 
-		//add all the seed users and join the global conversation
-		const hashedPassword = await makeHash('1234');
-		const userInstances = await Promise.all(users.map((user) => {
-			return conversationInstance.createUser({
-				...user,
-				avatar: config.uploads.avatars.defaultAvatar,
-				password: hashedPassword
-			});
-		}));
+		//add the test users only when in development mode
+		if (process.env.NODE_ENV === 'development') {
+			//add all the seed users and join the global conversation
+			const hashedPassword = await makeHash('1234');
+			const userInstances = await Promise.all(users.map((user) => {
+				return conversationInstance.createUser({
+					...user,
+					avatar: config.uploads.avatars.defaultAvatar,
+					password: hashedPassword
+				});
+			}));
 
-		await Promise.all(userInstances.map(async (userInstance) => {
-			//add the settings record for each user
-			await Settings.create({
-				userId: userInstance.id
-			});
+			await Promise.all(userInstances.map(async (userInstance) => {
+				//add the settings record for each user
+				await Settings.create({
+					userId: userInstance.id
+				});
 
-			//send a message from each user
-			return Message.create({
-				type: 'text',
-				content: `I am ${userInstance.displayName}`,
-				userId: userInstance.id,
-				conversationId: conversationInstance.id
-			});
-		}));
+				//send a message from each user
+				return Message.create({
+					type: 'text',
+					content: `I am ${userInstance.displayName}`,
+					userId: userInstance.id,
+					conversationId: conversationInstance.id
+				});
+			}));
+		}
 	} catch (err) {
 		console.error('Failed to sync the database', err);
 	}
